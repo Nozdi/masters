@@ -60,3 +60,7 @@ target/
 
 #Ipython Notebook
 .ipynb_checkpoints
+
+data/sms-export.xlsx
+data/cleaned.csv
+data/stats.csv
