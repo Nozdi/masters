@@ -40,6 +40,13 @@ bad_data_ids = [
 df = pd.read_excel('./data/sms-export.xlsx')
 clean_df = df[~df['Name'].isin(bad_data_ids)]
 
-stats = clean_df.describe()
-stats.to_csv("./data/stats.csv", index=False)
+borderline = clean_df[clean_df['MalignancyCharacter'] == 2]
+malignant = clean_df[clean_df['MalignancyCharacter'] == 1]
+benign = clean_df[clean_df['MalignancyCharacter'] == 0]
+
+borderline.describe().to_csv("./data/stats-borderline.csv")
+malignant.describe().to_csv("./data/stats-malignant.csv")
+benign.describe().to_csv("./data/stats-benign.csv")
+
+stats = clean_df.describe().to_csv("./data/stats-all.csv")
 clean_df.to_csv("./data/cleaned.csv", index=False)

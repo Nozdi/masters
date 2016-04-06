@@ -61,6 +61,11 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
+# Data
 data/sms-export.xlsx
 data/cleaned.csv
-data/stats.csv
+data/stats-*.csv
+
+
+# Mac
+.DS_Store
