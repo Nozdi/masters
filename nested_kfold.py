@@ -1,17 +1,38 @@
-from sklearn.cross_validation import KFold
+import numpy as np
 
+from sklearn.cross_validation import (
+    KFold,
+    StratifiedKFold,
+)
 
 SEED = 1
-N = 200
+METHODS = {
+    'standard': KFold,
+    'stratified': StratifiedKFold
+}
 
 
-def nested_kfold(n=N, n_folds=10, shuffle=True, random_state=SEED):
-    k_fold = KFold(n, n_folds=n_folds, shuffle=shuffle, random_state=random_state)
+def nested_kfold(y, n_folds=10, shuffle=True,
+                 random_state=SEED, method='standard'):
+    """
+    y - array of classes
+    """
+    folding_class = METHODS.get(method)
+    n = y
+    if method == 'standard':
+        n = len(y)
+    k_fold = folding_class(n, n_folds=n_folds, shuffle=shuffle,
+                           random_state=random_state)
     all_indexes = []
     for train_indices, test_indices in k_fold:
         result = {}
-        nested_fold = KFold(len(train_indices), n_folds=n_folds,
-                            shuffle=shuffle, random_state=random_state)
+        nested_n = nested_y = y[train_indices]
+        if method == 'standard':
+            nested_n = len(nested_y)
+
+        nested_fold = folding_class(nested_n, n_folds=n_folds,
+                                    shuffle=shuffle, random_state=random_state)
+
         nested_indexes = []
         for nested_train, nested_val in nested_fold:
             current = {}
@@ -23,3 +44,9 @@ def nested_kfold(n=N, n_folds=10, shuffle=True, random_state=SEED):
         result['nested_indexes'] = nested_indexes
         all_indexes.append(result)
     return all_indexes
+
+
+if __name__ == '__main__':
+    y = np.array([np.random.randint(2) for _ in range(100)])
+    print nested_kfold(y)
+    print nested_kfold(y, method='stratified')
