@@ -38,7 +38,7 @@ bad_data_ids = [
 ]
 
 df = pd.read_excel('./data/sms-export.xlsx')
-clean_df = df[~df['Name'].isin(bad_data_ids)]
+clean_df = df[~df['Name'].isin(bad_data_ids)].reset_index()
 
 borderline = clean_df[clean_df['MalignancyCharacter'] == 2]
 malignant = clean_df[clean_df['MalignancyCharacter'] == 1]
@@ -50,3 +50,14 @@ benign.describe().to_csv("./data/stats-benign.csv")
 
 stats = clean_df.describe().to_csv("./data/stats-all.csv")
 clean_df.to_csv("./data/cleaned.csv", index=False)
+
+clean_df.loc[:, 'Menopause'] = pd.notnull(clean_df['MenopauseAge'])
+
+X_features = [
+    'Pap', 'Ca125',
+    'ADimension', 'BDimension', 'CDimension',
+    'Color', 'Menopause']
+y_name = 'MalignancyCharacter'
+non_empty = clean_df[X_features + [y_name]].dropna()
+
+non_empty.to_csv('./data/dataset.csv', index=False)

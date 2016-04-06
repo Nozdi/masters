@@ -65,6 +65,7 @@ target/
 data/sms-export.xlsx
 data/cleaned.csv
 data/stats-*.csv
+data/dataset.csv
 
 
 # Mac
