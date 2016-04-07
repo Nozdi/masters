@@ -1,0 +1,22 @@
+model1:
+  seed: 1
+  num_epochs: 150
+  lr: 0.002
+  lrate_decay: 0.67
+  batch_size: 100
+  super_noise_std: 0.3
+  f_local_noise_std: 0.3
+  act: relu
+  encoder_layers: [7, 4, 3, 3]
+  denoising_cost_x: [100, 2, 0.1, 0.1]
+  decoder_spec: gauss
+  zestbn: bugfix
+  top_c: True  # last layer softmax
+  x_features:
+    - Pap
+    - Ca125
+    - ADimension
+    - BDimension
+    - CDimension
+    - Color
+    - Menopause
