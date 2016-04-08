@@ -1,14 +1,14 @@
 model1:
   seed: 1
-  num_epochs: 150
+  num_epochs: 200
   lr: 0.002
   lrate_decay: 0.67
-  batch_size: 100
-  super_noise_std: 0.3
-  f_local_noise_std: 0.3
+  batch_size: 50
+  super_noise_std: 0.0
+  f_local_noise_std: 0.0
   act: relu
-  encoder_layers: [7, 4, 3, 3]
-  denoising_cost_x: [100, 2, 0.1, 0.1]
+  encoder_layers: [7, 6, 5, 4, 3]
+  denoising_cost_x: [0, 0, 0, 0, 0]
   decoder_spec: gauss
   zestbn: bugfix
   top_c: True  # last layer softmax
