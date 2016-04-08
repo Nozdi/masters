@@ -1,10 +1,12 @@
+from collections import OrderedDict
+
 import yaml
 import pandas as pd
 import numpy as np
 
 from nested_kfold import nested_kfold
-from ladder import train_own_dataset
-
+from ladder.run import train_own_dataset
+from fuel.datasets import IndexableDataset
 
 LADDERS_CONFIG = 'ladder_models.yaml'
 DATASET = 'data/dataset.csv'
@@ -16,27 +18,28 @@ with open(LADDERS_CONFIG, 'r') as fp:
 
 
 df = pd.read_csv(DATASET)
-y = df[TARGET_NAME].values.astype(np.float)
+y = df[TARGET_NAME].values.astype(np.int)
 indexes = nested_kfold(y, method='stratified')
 first_fold = indexes[0]
 first_nested_fold = first_fold['nested_indexes'][0]
 
 
+class OvaDataset(IndexableDataset):
+    def __init__(self, X, y, **kwargs):
+        indexables = OrderedDict(
+            [('features', X),
+             ('targets', y)]
+        )
+        super(OvaDataset, self).__init__(indexables, **kwargs)
+
+
 for name, config in configs.iteritems():
     X = df[config.pop('x_features')].values.astype(np.float)
-
-    train_X = X[first_nested_fold['train']]
-    train_Y = y[first_nested_fold['train']]
-
-    val_X = X[first_nested_fold['val']]
-    val_Y = y[first_nested_fold['val']]
-
     train_own_dataset(
         config,
         dataset={
-            'train_X': train_X,
-            'train_Y': train_Y,
-            'val_X': val_X,
-            'val_Y': val_Y,
+            'ovadataset': OvaDataset(X, y),
+            'train_indexes': first_nested_fold['train'],
+            'val_indexes': first_nested_fold['val'],
         }
     )

@@ -29,14 +29,14 @@ from fuel.transformers import Transformer
 from picklable_itertools import cycle, imap
 from itertools import izip, product, tee
 
-logger = logging.getLogger('main')
-
 from utils import ShortPrinting, prepare_dir, load_df, DummyLoop
 from utils import SaveExpParams, SaveLog, SaveParams, AttributeDict
 from nn import ZCA, ContrastNorm
 from nn import ApproxTestMonitoring, FinalTestMonitoring, TestMonitoring
 from nn import LRDecay
 from ladder import LadderAE
+
+logger = logging.getLogger('main')
 
 
 class Whitening(Transformer):
@@ -155,6 +155,8 @@ def make_datastream(dataset, indices, batch_size,
     else:
         i_labeled = indices[:n_labeled]
 
+    import ipdb; ipdb.set_trace()
+
     # Get unlabeled indices
     i_unlabeled = indices[:n_unlabeled]
 
@@ -247,8 +249,8 @@ def setup_data(p, test_set=False):
 
     # Take all indices and permutate them
     all_ind = numpy.arange(train_set.num_examples)
-    if p.get('dseed'):
-        rng = numpy.random.RandomState(seed=p.dseed)
+    if p.get('seed'):
+        rng = numpy.random.RandomState(seed=p.seed)
         rng.shuffle(all_ind)
 
     d = AttributeDict()
@@ -287,7 +289,6 @@ def setup_data(p, test_set=False):
         whiten.fit(p.whiten_zca, get_data(d.train, d.train_ind))
     else:
         whiten = None
-
     return in_dim, d, whiten, cnorm
 
 
@@ -508,6 +509,153 @@ def train(cli_params):
         return None
     return df
 
+
+def make_datastream_own(dataset, indices, batch_size,
+                        scheme=SequentialScheme):
+
+    return SemiDataStream(
+        data_stream_labeled=Whitening(
+            DataStream(dataset),
+            iteration_scheme=scheme(indices, batch_size),
+            whiten=None, cnorm=None),
+        data_stream_unlabeled=Whitening(
+            DataStream(dataset),
+            iteration_scheme=scheme(indices, batch_size),
+            whiten=None, cnorm=None)
+    )
+
+
+def setup_model_own(p):
+    ladder = LadderAE(p)
+    # Setup inputs
+    input_type = TensorType('float32', [False] * (1 + 1))
+    x_only = input_type('features_unlabeled')
+    x = input_type('features_labeled')
+    y = theano.tensor.lvector('targets_labeled')
+    ladder.apply(x, y, x_only)
+
+    # Load parameters if requested
+    if p.get('load_from'):
+        with open(p.load_from + '/trained_params.npz') as f:
+            loaded = numpy.load(f)
+            cg = ComputationGraph([ladder.costs.total])
+            current_params = VariableFilter(roles=[PARAMETER])(cg.variables)
+            logger.info('Loading parameters: %s' % ', '.join(loaded.keys()))
+            for param in current_params:
+                assert param.get_value().shape == loaded[param.name].shape
+                param.set_value(loaded[param.name])
+
+    return ladder
+
+
+def train_own_dataset(cli_params, dataset=None, save_to='results/ova_all_full'):
+    cli_params['save_dir'] = prepare_dir(save_to)
+    logfile = os.path.join(cli_params['save_dir'], 'log.txt')
+
+    # Log also DEBUG to a file
+    fh = logging.FileHandler(filename=logfile)
+    fh.setLevel(logging.DEBUG)
+    logger.addHandler(fh)
+
+    logger.info('Logging into %s' % logfile)
+
+    p, loaded = load_and_log_params(cli_params)
+
+    ladder = setup_model_own(p)
+
+    # Training
+    all_params = ComputationGraph([ladder.costs.total]).parameters
+    logger.info('Found the following parameters: %s' % str(all_params))
+
+    # Fetch all batch normalization updates. They are in the clean path.
+    bn_updates = ComputationGraph([ladder.costs.class_clean]).updates
+    assert 'counter' in [u.name for u in bn_updates.keys()], \
+        'No batch norm params in graph - the graph has been cut?'
+
+    training_algorithm = GradientDescent(
+        cost=ladder.costs.total, params=all_params,
+        step_rule=Adam(learning_rate=ladder.lr))
+    # In addition to actual training, also do BN variable approximations
+    training_algorithm.add_updates(bn_updates)
+
+    short_prints = {
+        "train": {
+            'T_C_class': ladder.costs.class_corr,
+            'T_C_de': ladder.costs.denois.values(),
+        },
+        "valid_approx": OrderedDict([
+            ('V_C_class', ladder.costs.class_clean),
+            ('V_E', ladder.error.clean),
+            ('V_C_de', ladder.costs.denois.values()),
+        ]),
+        "valid_final": OrderedDict([
+            ('VF_C_class', ladder.costs.class_clean),
+            ('VF_E', ladder.error.clean),
+            ('VF_C_de', ladder.costs.denois.values()),
+        ]),
+    }
+
+    ovadataset = dataset['ovadataset']
+    train_indexes = dataset['train_indexes']
+    val_indexes = dataset['val_indexes']
+
+    main_loop = MainLoop(
+        training_algorithm,
+        # Datastream used for training
+        make_datastream_own(ovadataset, train_indexes,
+                            p.batch_size),
+        model=Model(ladder.costs.total),
+        extensions=[
+            FinishAfter(after_n_epochs=p.num_epochs),
+
+            # This will estimate the validation error using
+            # running average estimates of the batch normalization
+            # parameters, mean and variance
+            ApproxTestMonitoring(
+                [ladder.costs.class_clean, ladder.error.clean] +
+                ladder.costs.denois.values(),
+                make_datastream_own(ovadataset, val_indexes,
+                                    p.batch_size),
+                prefix="valid_approx"),
+
+            # This Monitor is slower, but more accurate since it will first
+            # estimate batch normalization parameters from training data and
+            # then do another pass to calculate the validation error.
+            FinalTestMonitoring(
+                [ladder.costs.class_clean, ladder.error.clean] +
+                ladder.costs.denois.values(),
+                make_datastream_own(ovadataset, train_indexes,
+                                    p.batch_size),
+                make_datastream_own(ovadataset, val_indexes,
+                                    p.batch_size),
+                prefix="valid_final",
+                after_n_epochs=p.num_epochs),
+
+            TrainingDataMonitoring(
+                [ladder.costs.total, ladder.costs.class_corr,
+                 training_algorithm.total_gradient_norm] +
+                ladder.costs.denois.values(),
+                prefix="train", after_epoch=True),
+
+            SaveParams(None, all_params, p.save_dir, after_epoch=True),
+            SaveExpParams(p, p.save_dir, before_training=True),
+            SaveLog(p.save_dir, after_training=True),
+            ShortPrinting(short_prints),
+            LRDecay(ladder.lr, p.num_epochs * p.lrate_decay, p.num_epochs,
+                    after_epoch=True),
+        ])
+    main_loop.run()
+
+    # Get results
+    df = main_loop.log.to_dataframe()
+    col = 'valid_final_error_rate_clean'
+    logger.info('%s %g' % (col, df[col].iloc[-1]))
+
+    if main_loop.log.status['epoch_interrupt_received']:
+        return None
+    return df
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
@@ -640,7 +788,6 @@ if __name__ == "__main__":
     elif args.cmd == "train":
         listdicts = {k: v for k, v in vars(args).iteritems() if type(v) is list}
         therest = {k: v for k, v in vars(args).iteritems() if type(v) is not list}
-
         gen1, gen2 = tee(product(*listdicts.itervalues()))
 
         l = len(list(gen1))
