@@ -1,12 +1,23 @@
 from collections import OrderedDict
+from operator import itemgetter
 
 import yaml
 import pandas as pd
 import numpy as np
 
-from nested_kfold import nested_kfold
-from ladder.run import train_own_dataset
+from tqdm import tqdm
 from fuel.datasets import IndexableDataset
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.grid_search import ParameterGrid
+from sklearn.base import clone
+
+from nested_kfold import nested_kfold
+from cost import matrix_cost
+from ladder.run import train_own_dataset
+
 
 LADDERS_CONFIG = 'ladder_models.yaml'
 DATASET = 'data/dataset.csv'
@@ -19,6 +30,7 @@ with open(LADDERS_CONFIG, 'r') as fp:
 
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
+
 indexes = nested_kfold(y, method='stratified')
 first_fold = indexes[0]
 first_nested_fold = first_fold['nested_indexes'][0]
@@ -33,28 +45,75 @@ class OvaDataset(IndexableDataset):
         super(OvaDataset, self).__init__(indexables, **kwargs)
 
 
-for name, config in configs.iteritems():
-    X = df[config.pop('x_features')].values.astype(np.float)
-    # train_own_dataset(
-    #     config,
-    #     dataset={
-    #         'ovadataset': OvaDataset(X, y),
-    #         'train_indexes': first_nested_fold['train'],
-    #         'val_indexes': first_nested_fold['val'],
-    #     }
-    # )
+def cv_ladders(configs, indexes):
+    for name, config in configs.iteritems():
+        X = df[config.pop('x_features')].values.astype(np.float)
+        train_own_dataset(
+            config,
+            dataset={
+                'ovadataset': OvaDataset(X, y),
+                'train_indexes': first_nested_fold['train'],
+                'val_indexes': first_nested_fold['val'],
+            }
+        )
+        print len(first_nested_fold['val'])
 
 
-# from sklearn.preprocessing import StandardScaler
-# from sklearn.linear_model import LogisticRegression
-# from sklearn.pipeline import make_pipeline
-from sklearn.metrics import accuracy_score
+def cv_nn(indexes):
+    pass
 
 
-# clf = make_pipeline(
-#     StandardScaler(),
-#     LogisticRegression(multi_class='multinomial', solver='lbfgs')
-# )
+clf = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(random_state=1)
+)
+df.loc[:, TARGET_NAME][df[TARGET_NAME] == 2] = 1
+y = df[TARGET_NAME].values.astype(np.int)
+
+
+grid = {
+    'logisticregression__C': [0.1, 1, 10, 100],
+    'logisticregression__penalty': ['l1', 'l2'],
+    'features': [['Pap', 'Ca125', 'ADimension', 'Color', 'Menopause']]
+
+}
+
+
+def cv_sk(indexes, base_estimator, grid):
+    test_scores = []
+    for fold in tqdm(indexes):
+        nested_cv_results = []
+        for config in ParameterGrid(grid):
+            current = config.copy()
+            scores = []
+            for nested_fold in fold['nested_indexes']:
+                _config = current.copy()
+                X = df[_config.pop('features')].values.astype(np.float)
+                clf = clone(base_estimator).set_params(**_config)
+                clf.fit(X[nested_fold['train']], y[nested_fold['train']])
+                score = matrix_cost(
+                    y[nested_fold['val']],
+                    clf.predict(X[nested_fold['val']])
+                )
+                scores.append(score)
+            nested_cv_results.append({
+                'config': current,
+                'score': np.mean(scores)
+            })
+
+        best = sorted(nested_cv_results, key=itemgetter('score'))[0]
+        _config = best['config']
+        X = df[_config.pop('features')].values.astype(np.float)
+        clf = clone(base_estimator).set_params(**_config)
+        clf.fit(X[fold['train']], y[fold['train']])
+        score = matrix_cost(
+            y[fold['test']],
+            clf.predict(X[fold['test']])
+        )
+        test_scores.append(score)
+    return np.mean(test_scores), test_scores
+
+
 
 # clf.fit(X[first_nested_fold['train']], y[first_nested_fold['train']])
 # print 1 - accuracy_score(

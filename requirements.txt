@@ -3,3 +3,4 @@ numpy==1.10.4
 scipy==0.17.0
 pandas==0.17.0
 PyYAML==3.11
+tqdm==3.8.0
