@@ -84,10 +84,9 @@ def cv_sk(indexes, base_estimator, grid):
     for fold in tqdm(indexes):
         nested_cv_results = []
         for config in ParameterGrid(grid):
-            current = config.copy()
             scores = []
             for nested_fold in fold['nested_indexes']:
-                _config = current.copy()
+                _config = config.copy()
                 X = df[_config.pop('features')].values.astype(np.float)
                 clf = clone(base_estimator).set_params(**_config)
                 clf.fit(X[nested_fold['train']], y[nested_fold['train']])
@@ -97,7 +96,7 @@ def cv_sk(indexes, base_estimator, grid):
                 )
                 scores.append(score)
             nested_cv_results.append({
-                'config': current,
+                'config': config,
                 'score': np.mean(scores)
             })
 
