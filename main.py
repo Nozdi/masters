@@ -7,6 +7,10 @@ import numpy as np
 
 from tqdm import tqdm
 from fuel.datasets import IndexableDataset
+from joblib import (
+    Parallel,
+    delayed,
+)
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -79,11 +83,30 @@ grid = {
 }
 
 
+def validate_one_sk(df, y, base_estimator, config, train_indexes, val_indexes):
+    _config = config.copy()
+    X = df[_config.pop('features')].values.astype(np.float)
+    clf = clone(base_estimator).set_params(**_config)
+    clf.fit(X[train_indexes], y[train_indexes])
+    return matrix_cost(
+        y[val_indexes],
+        clf.predict(X[val_indexes])
+    )
+
+
 def cv_sk(indexes, base_estimator, grid):
     test_scores = []
     for fold in tqdm(indexes):
         nested_cv_results = []
         for config in ParameterGrid(grid):
+            # scores = Parallel(n_jobs=2)(
+            #     delayed(validate_one_sk)(
+            #         df, y, base_estimator, config,
+            #         nested_fold['train'],
+            #         nested_fold['val']
+            #     )
+            #     for nested_fold in fold['nested_indexes']
+            # )
             scores = []
             for nested_fold in fold['nested_indexes']:
                 _config = config.copy()
@@ -112,13 +135,6 @@ def cv_sk(indexes, base_estimator, grid):
         test_scores.append(score)
     return np.mean(test_scores), test_scores
 
-
-
-# clf.fit(X[first_nested_fold['train']], y[first_nested_fold['train']])
-# print 1 - accuracy_score(
-#     y[first_nested_fold['val']],
-#     clf.predict(X[first_nested_fold['val']])
-# )
 
 # from keras.models import Sequential
 # from keras.layers.core import Dense, Activation
