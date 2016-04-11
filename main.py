@@ -35,6 +35,11 @@ with open(LADDERS_CONFIG, 'r') as fp:
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
 
+
+df.loc[:, TARGET_NAME][df[TARGET_NAME] == 2] = 1
+y = df[TARGET_NAME].values.astype(np.int)
+
+
 indexes = nested_kfold(y, method='stratified')
 first_fold = indexes[0]
 first_nested_fold = first_fold['nested_indexes'][0]

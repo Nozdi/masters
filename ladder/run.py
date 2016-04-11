@@ -155,8 +155,6 @@ def make_datastream(dataset, indices, batch_size,
     else:
         i_labeled = indices[:n_labeled]
 
-    import ipdb; ipdb.set_trace()
-
     # Get unlabeled indices
     i_unlabeled = indices[:n_unlabeled]
 
@@ -622,7 +620,7 @@ def train_own_dataset(cli_params, dataset=None, save_to='results/ova_all_full'):
             # estimate batch normalization parameters from training data and
             # then do another pass to calculate the validation error.
             FinalTestMonitoring(
-                [ladder.costs.class_clean, ladder.error.clean] +
+                [ladder.costs.class_clean, ladder.error.clean_mc] +
                 ladder.costs.denois.values(),
                 make_datastream_own(ovadataset, train_indexes,
                                     p.batch_size),
@@ -648,7 +646,7 @@ def train_own_dataset(cli_params, dataset=None, save_to='results/ova_all_full'):
 
     # Get results
     df = main_loop.log.to_dataframe()
-    col = 'valid_final_error_rate_clean'
+    col = 'valid_final_error_matrix_cost'
     logger.info('%s %g' % (col, df[col].iloc[-1]))
 
     if main_loop.log.status['epoch_interrupt_received']:

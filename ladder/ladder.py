@@ -14,12 +14,23 @@ from blocks.bricks.cost import SquaredError
 from blocks.bricks.cost import CategoricalCrossEntropy, MisclassificationRate
 from blocks.graph import add_annotation, Annotation
 from blocks.roles import add_role, PARAMETER, WEIGHT, BIAS
+from blocks.bricks.base import application
+from blocks.bricks.cost import Cost
 
 from utils import shared_param, AttributeDict
 from nn import maxpool_2d, global_meanpool_2d, BNPARAM
 
 logger = logging.getLogger('main.model')
 floatX = theano.config.floatX
+
+
+class OvaCostMatrix(Cost):
+    @application(outputs=["matrix_cost"])
+    def apply(self, y, y_hat):
+        cost = theano.shared(np.array([[0, 2.5],
+                                      [5, 0]]))
+        max_y_hat = T.cast(y_hat.argmax(axis=1), 'int32')
+        return cost[T.cast(y, 'int32'), max_y_hat].sum()
 
 
 class LadderAE():
@@ -278,6 +289,9 @@ class LadderAE():
         mr = MisclassificationRate()
         self.error.clean = mr.apply(y, clean.labeled.h[top]) * np.float32(100.)
         self.error.clean.name = 'error_rate_clean'
+        mc = OvaCostMatrix()
+        self.error.clean_mc = mc.apply(y, clean.labeled.h[top])
+        self.error.clean_mc.name = 'error_matrix_cost'
 
     def apply_act(self, input, act_name):
         if input is None:

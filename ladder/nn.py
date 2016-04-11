@@ -249,7 +249,6 @@ class FinalTestMonitoring(SimpleExtension, MonitoringExtension, TestMonitoring):
             self.reset_counter()
             self._trn_evaluator.evaluate(self.trn_stream)
             self.reset_counter()
-
         value_dict = self._tst_evaluator.evaluate(self.tst_stream)
         self.add_records(self.main_loop.log, value_dict.items())
 
