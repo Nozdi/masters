@@ -34,12 +34,6 @@ with open(LADDERS_CONFIG, 'r') as fp:
 
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
-
-
-df.loc[:, TARGET_NAME][df[TARGET_NAME] == 2] = 1
-y = df[TARGET_NAME].values.astype(np.int)
-
-
 indexes = nested_kfold(y, method='stratified')
 first_fold = indexes[0]
 first_nested_fold = first_fold['nested_indexes'][0]
@@ -57,7 +51,7 @@ class OvaDataset(IndexableDataset):
 def cv_ladders(configs, indexes):
     for name, config in configs.iteritems():
         X = df[config.pop('x_features')].values.astype(np.float)
-        train_own_dataset(
+        res, inputs = train_own_dataset(
             config,
             dataset={
                 'ovadataset': OvaDataset(X, y),
@@ -65,6 +59,7 @@ def cv_ladders(configs, indexes):
                 'val_indexes': first_nested_fold['val'],
             }
         )
+        import ipdb; ipdb.set_trace()
         print len(first_nested_fold['val'])
 
 
@@ -76,8 +71,8 @@ clf = make_pipeline(
     StandardScaler(),
     LogisticRegression(random_state=1)
 )
-df.loc[:, TARGET_NAME][df[TARGET_NAME] == 2] = 1
-y = df[TARGET_NAME].values.astype(np.int)
+# df.loc[:, TARGET_NAME][df[TARGET_NAME] == 2] = 1
+# y = df[TARGET_NAME].values.astype(np.int)
 
 
 grid = {

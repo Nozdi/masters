@@ -27,8 +27,9 @@ floatX = theano.config.floatX
 class OvaCostMatrix(Cost):
     @application(outputs=["matrix_cost"])
     def apply(self, y, y_hat):
-        cost = theano.shared(np.array([[0, 2.5],
-                                      [5, 0]]))
+        cost = theano.shared(np.array([[0, 2.5, 2.5],
+                                       [5, 0, 0],
+                                       [5, 0, 0]]))
         max_y_hat = T.cast(y_hat.argmax(axis=1), 'int32')
         return cost[T.cast(y, 'int32'), max_y_hat].sum()
 
