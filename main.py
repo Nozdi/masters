@@ -17,9 +17,18 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.grid_search import ParameterGrid
 from sklearn.base import clone
+from sklearn.metrics import confusion_matrix
 
 from nested_kfold import nested_kfold
-from cost import matrix_cost
+from metrics import (
+    matrix_cost,
+    binarize_y,
+    PPV,
+    NPV,
+    SPC,
+    SEN,
+    ACC,
+)
 from ladder.run import train_own_dataset
 
 
@@ -35,7 +44,7 @@ with open(LADDERS_CONFIG, 'r') as fp:
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
 indexes = nested_kfold(y, method='stratified')
-first_fold = indexes[0]
+first_fold = indexes[2]
 first_nested_fold = first_fold['nested_indexes'][0]
 
 
@@ -114,8 +123,8 @@ def cv_sk(indexes, base_estimator, grid):
                 clf = clone(base_estimator).set_params(**_config)
                 clf.fit(X[nested_fold['train']], y[nested_fold['train']])
                 score = matrix_cost(
-                    y[nested_fold['val']],
-                    clf.predict(X[nested_fold['val']])
+                    binarize_y(y[nested_fold['val']]),
+                    binarize_y(clf.predict(X[nested_fold['val']])),
                 )
                 scores.append(score)
             nested_cv_results.append({
@@ -128,12 +137,26 @@ def cv_sk(indexes, base_estimator, grid):
         X = df[_config.pop('features')].values.astype(np.float)
         clf = clone(base_estimator).set_params(**_config)
         clf.fit(X[fold['train']], y[fold['train']])
-        score = matrix_cost(
-            y[fold['test']],
-            clf.predict(X[fold['test']])
-        )
+
+        binarized_y_true = binarize_y(y[fold['test']])
+        binarized_y_pred = binarize_y(clf.predict(X[fold['test']]))
+        cm = confusion_matrix(binarized_y_true, binarized_y_pred).astype(np.float)
+        score = {
+            'PPV': PPV(cm),
+            'NPV': NPV(cm),
+            'SPC': SPC(cm),
+            'SEN': SEN(cm),
+            'ACC': ACC(cm),
+            'cost_matrix': matrix_cost(binarized_y_true, binarized_y_pred)
+        }
         test_scores.append(score)
-    return np.mean(test_scores), test_scores
+    return pd.DataFrame(test_scores)
+
+
+# if __name__ == '__main__':
+#     # calc mean & std
+#     df = cv_sk(indexes, clf, grid)
+#     print pd.DataFrame({'mean': df.mean(), 'std': df.std()})
 
 
 # from keras.models import Sequential
