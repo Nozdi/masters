@@ -1,5 +1,10 @@
 from collections import OrderedDict
 from operator import itemgetter
+from itertools import (
+    chain,
+    product
+)
+import json
 
 import yaml
 import pandas as pd
@@ -35,6 +40,7 @@ from ladder.run import train_own_dataset
 LADDERS_CONFIG = 'ladder_models.yaml'
 DATASET = 'data/dataset.csv'
 TARGET_NAME = 'MalignancyCharacter'
+N_CORES = 2
 
 
 with open(LADDERS_CONFIG, 'r') as fp:
@@ -44,7 +50,7 @@ with open(LADDERS_CONFIG, 'r') as fp:
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
 indexes = nested_kfold(y, method='stratified')
-first_fold = indexes[2]
+first_fold = indexes[8]
 first_nested_fold = first_fold['nested_indexes'][0]
 
 
@@ -57,19 +63,80 @@ class OvaDataset(IndexableDataset):
         super(OvaDataset, self).__init__(indexables, **kwargs)
 
 
+# def cv_ladders(configs, indexes):
+#     for name, config in configs.iteritems():
+#         X = df[config.pop('x_features')].values.astype(np.float)
+#         res, inputs = train_own_dataset(
+#             config,
+#             dataset={
+#                 'ovadataset': OvaDataset(X, y),
+#                 'train_indexes': first_nested_fold['train'],
+#                 'val_indexes': first_nested_fold['val'],
+#             }
+#         )
+#         print len(first_nested_fold['val'])
+
+
+def validate_ladder(config, df, y, train_indexes, val_indexes):
+    _config = config.copy()
+    X = df[_config.pop('x_features')].values.astype(np.float)
+    res, inputs = train_own_dataset(
+        config,
+        dataset={
+            'ovadataset': OvaDataset(X, y),
+            'train_indexes': train_indexes,
+            'val_indexes': val_indexes,
+        }
+    )
+    return {
+        'score': matrix_cost(
+            binarize_y(y[val_indexes]),
+            binarize_y(res.argmax(axis=1)),
+        ),
+        'config': json.dumps(config),
+    }
+
+
 def cv_ladders(configs, indexes):
-    for name, config in configs.iteritems():
-        X = df[config.pop('x_features')].values.astype(np.float)
+    test_scores = []
+    all_configs = list(chain(
+        *[list(ParameterGrid(grid)) for grid in configs.values()]
+    ))
+
+    for fold in tqdm(indexes):
+        scores = Parallel(n_jobs=N_CORES)(
+            delayed(validate_ladder)(
+                config, df, y,
+                nested_fold['train'],
+                nested_fold['val']
+            )
+            for config, nested_fold in product(all_configs, fold['nested_indexes'])
+        )
+        df_scores = pd.DataFrame(scores)
+        sorted_configs = df_scores.groupby('config').mean().sort_values('score')
+        _config = yaml.safe_load(sorted_configs.index[0])
+        X = df[_config.pop('x_features')].values.astype(np.float)
         res, inputs = train_own_dataset(
-            config,
+            _config,
             dataset={
                 'ovadataset': OvaDataset(X, y),
-                'train_indexes': first_nested_fold['train'],
-                'val_indexes': first_nested_fold['val'],
+                'train_indexes': fold['train'],
+                'val_indexes': fold['test'],
             }
         )
-        import ipdb; ipdb.set_trace()
-        print len(first_nested_fold['val'])
+        binarized_y_true = binarize_y(y[fold['test']])
+        binarized_y_pred = binarize_y(res.argmax(axis=1))
+        cm = confusion_matrix(binarized_y_true, binarized_y_pred).astype(np.float)
+        score = {
+            'PPV': PPV(cm),
+            'NPV': NPV(cm),
+            'SPC': SPC(cm),
+            'SEN': SEN(cm),
+            'ACC': ACC(cm),
+            'cost_matrix': matrix_cost(binarized_y_true, binarized_y_pred)
+        }
+        test_scores.append(score)
+    return pd.DataFrame(test_scores)
 
 
 def cv_nn(indexes):

@@ -1,60 +1,35 @@
-# model1:
-#   seed: 1
-#   num_epochs: 200
-#   lr: 0.002
-#   lrate_decay: 0.67
-#   batch_size: 50
-#   super_noise_std: 0.0
-#   f_local_noise_std: 0.0
-#   act: relu
-#   encoder_layers: [5, 3, 3, 3]
-#   denoising_cost_x: [0, 0, 0, 0]
-#   decoder_spec: gauss
-#   zestbn: bugfix
-#   top_c: True  # last layer softmax
-#   x_features:
-#     - Pap
-#     - Ca125
-#     - ADimension
-#     - Color
-#     - Menopause
-# model2:
-#   seed: 1
-#   num_epochs: 300
-#   lr: 0.002
-#   lrate_decay: 0.67
-#   batch_size: 50
-#   super_noise_std: 0.1
-#   f_local_noise_std: 0.1
-#   act: relu
-#   encoder_layers: [5, 3, 3, 3]
-#   denoising_cost_x: [0.0001, 0.001, 0.001, 1]
-#   decoder_spec: gauss
-#   zestbn: bugfix
-#   top_c: True  # last layer softmax
-#   x_features:
-#     - Pap
-#     - Ca125
-#     - ADimension
-#     - Color
-#     - Menopause
-model3:
-  seed: 1
-  num_epochs: 300
-  lr: 0.002
-  lrate_decay: 0.67
-  batch_size: 50
-  super_noise_std: 0.1
-  f_local_noise_std: 0.1
-  act: relu
-  encoder_layers: [5, 3, 3, 3]
-  denoising_cost_x: [0.0001, 0.001, 0.001, 1]
-  decoder_spec: gauss
-  zestbn: bugfix
-  top_c: True  # last layer softmax
+ladder_5:
+  seed:
+    - 1
+  num_epochs:
+    - 300
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+  super_noise_std:
+    - 0.1
+  f_local_noise_std:
+    - 0.1
+  act:
+    - relu
+  encoder_layers:
+    - [5, 3, 3, 3]
+  denoising_cost_x:
+    - [0.0001, 0.001, 0.001, 1]
+    - [0, 0, 0, 0]
+  decoder_spec:
+    - gauss
+  zestbn:
+    - bugfix
+  top_c:
+    - True  # last layer softmax
   x_features:
-    - Pap
-    - Ca125
-    - ADimension
-    - Color
-    - Menopause
+    -
+      - Pap
+      - Ca125
+      - ADimension
+      - Color
+      - Menopause
