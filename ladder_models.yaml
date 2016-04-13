@@ -8,7 +8,7 @@ ladder_5:
   lrate_decay:
     - 0.67
   batch_size:
-    - 50
+    - 41
   super_noise_std:
     - 0.1
   f_local_noise_std:
@@ -19,7 +19,7 @@ ladder_5:
     - [5, 3, 3, 3]
   denoising_cost_x:
     - [0.0001, 0.001, 0.001, 1]
-    - [0, 0, 0, 0]
+    # - [0, 0, 0, 0]
   decoder_spec:
     - gauss
   zestbn:
@@ -30,6 +30,6 @@ ladder_5:
     -
       - Pap
       - Ca125
-      - ADimension
+      - MaxDimension
       - Color
       - Menopause
