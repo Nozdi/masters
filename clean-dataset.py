@@ -51,11 +51,14 @@ benign.describe().to_csv("./data/stats-benign.csv")
 stats = clean_df.describe().to_csv("./data/stats-all.csv")
 clean_df.to_csv("./data/cleaned.csv", index=False)
 
+# new features
 clean_df.loc[:, 'Menopause'] = pd.notnull(clean_df['MenopauseAge'])
+all_dims = ['ADimension', 'BDimension', 'CDimension']
+clean_df.loc[:, 'MaxDimension'] = clean_df[all_dims].max(axis=1)
 
 X_features = [
     'Pap', 'Ca125',
-    'ADimension', 'BDimension', 'CDimension',
+    'ADimension', 'BDimension', 'CDimension', 'MaxDimension',
     'Color', 'Menopause']
 y_name = 'MalignancyCharacter'
 non_empty = clean_df[X_features + [y_name]].dropna()
