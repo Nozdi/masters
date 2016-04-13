@@ -601,7 +601,7 @@ def train_own_dataset(cli_params, dataset=None, save_to='results/ova_all_full'):
         training_algorithm,
         # Datastream used for training
         make_datastream_own(ovadataset, train_indexes,
-                            p.batch_size),
+                            p.batch_size, scheme=ShuffledScheme),
         model=Model(ladder.costs.total),
         extensions=[
             FinishAfter(after_n_epochs=p.num_epochs),
