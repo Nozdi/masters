@@ -51,15 +51,75 @@ benign.describe().to_csv("./data/stats-benign.csv")
 stats = clean_df.describe().to_csv("./data/stats-all.csv")
 clean_df.to_csv("./data/cleaned.csv", index=False)
 
-# new features
+# new features & preprocess
 clean_df.loc[:, 'Menopause'] = pd.notnull(clean_df['MenopauseAge'])
 all_dims = ['ADimension', 'BDimension', 'CDimension']
 clean_df.loc[:, 'MaxDimension'] = clean_df[all_dims].max(axis=1)
 
-X_features = [
+idx = (pd.isnull(clean_df['PapBloodFlow']) & clean_df['Pap'] == 0)
+clean_df.loc[idx, 'PapBloodFlow'] = 0
+idx = (pd.isnull(clean_df['APapDimension']) & clean_df['Pap'] == 0)
+clean_df.loc[idx, 'APapDimension'] = 0
+idx = (pd.isnull(clean_df['SeptumThickness']) & clean_df['Septum'] == 0)
+clean_df.loc[idx, 'SeptumThickness'] = 0
+
+
+LR1_features = [
+    'Age',
+    'OvarianCancerInFamily',
+    'HormoneReplacementTherapy',
+    'PainAtExamination',
+    'MaxDimension',
+    'Ascites',
+    'PapBloodFlow',
+    'Solid',
+    'ASolidDimension',
+    'InnerWall',
+    'Shadow',
+    'Color',
+]
+
+LR2_features = [
+    "Age",
+    "Ascites",
+    "PapBloodFlow",
+    "ASolidDimension",
+    "InnerWall",
+    "Shadow",
+]
+
+Tim_features = [
+    "Color",
+    "Ca125",
+    "APapDimension",
+    "AgeAfterMenopause"
+]
+
+SM_features = [
+    "Septum",
+    "SmEchogenicity",
+    "Location",
+    "Ascites",
+    "SmInnerWallThickness",
+    "TumorVolume",
+    "Solid",
+    "Pap",
+    "APapDimension",
+    "InnerWall",
+    "SeptumThickness",
+    "AgeAfterMenopause"
+]
+
+ANN1_features = [
     'Pap', 'Ca125',
     'ADimension', 'BDimension', 'CDimension', 'MaxDimension',
     'Color', 'Menopause']
+
+
+X_features = list(
+    set(LR1_features + LR2_features + Tim_features + SM_features +
+        ANN1_features)
+)
 y_name = 'MalignancyCharacter'
 
 

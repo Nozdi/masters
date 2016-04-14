@@ -50,8 +50,6 @@ with open(LADDERS_CONFIG, 'r') as fp:
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
 indexes = nested_kfold(y, method='stratified')
-first_fold = indexes[8]
-first_nested_fold = first_fold['nested_indexes'][0]
 
 
 class OvaDataset(IndexableDataset):
@@ -162,8 +160,6 @@ clf = make_pipeline(
     StandardScaler(),
     LogisticRegression(random_state=1)
 )
-# df.loc[:, TARGET_NAME][df[TARGET_NAME] == 2] = 1
-# y = df[TARGET_NAME].values.astype(np.int)
 
 
 grid = {
