@@ -8,7 +8,7 @@ ladder_5:
   lrate_decay:
     - 0.67
   batch_size:
-    - 41
+    - 50
   super_noise_std:
     - 0.1
   f_local_noise_std:

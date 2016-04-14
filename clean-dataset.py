@@ -61,6 +61,19 @@ X_features = [
     'ADimension', 'BDimension', 'CDimension', 'MaxDimension',
     'Color', 'Menopause']
 y_name = 'MalignancyCharacter'
-non_empty = clean_df[X_features + [y_name]].dropna()
+
+
+clean_df.loc[:, 'GiradsDiagBin'] = clean_df['GiradsDiag'] > 3
+
+other_models_results = [
+    'TimmermannBin',
+    'LR1Bin',
+    'LR2Bin',
+    'SMBin',
+    'GiradsDiagBin',
+    'AdnexBin',
+]
+
+non_empty = clean_df[X_features + [y_name] + other_models_results].dropna()
 
 non_empty.to_csv('./data/dataset.csv', index=False)

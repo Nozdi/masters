@@ -63,20 +63,6 @@ class OvaDataset(IndexableDataset):
         super(OvaDataset, self).__init__(indexables, **kwargs)
 
 
-# def cv_ladders(configs, indexes):
-#     for name, config in configs.iteritems():
-#         X = df[config.pop('x_features')].values.astype(np.float)
-#         res, inputs = train_own_dataset(
-#             config,
-#             dataset={
-#                 'ovadataset': OvaDataset(X, y),
-#                 'train_indexes': first_nested_fold['train'],
-#                 'val_indexes': first_nested_fold['val'],
-#             }
-#         )
-#         print len(first_nested_fold['val'])
-
-
 def validate_ladder(config, df, y, train_indexes, val_indexes):
     _config = config.copy()
     X = df[_config.pop('x_features')].values.astype(np.float)
@@ -94,6 +80,18 @@ def validate_ladder(config, df, y, train_indexes, val_indexes):
             binarize_y(res.argmax(axis=1)),
         ),
         'config': json.dumps(config),
+    }
+
+
+def create_score_dict(y_true, y_pred):
+    cm = confusion_matrix(y_true, y_pred).astype(np.float)
+    return {
+        'PPV': PPV(cm),
+        'NPV': NPV(cm),
+        'SPC': SPC(cm),
+        'SEN': SEN(cm),
+        'ACC': ACC(cm),
+        'cost_matrix': matrix_cost(y_true, y_pred)
     }
 
 
@@ -126,17 +124,34 @@ def cv_ladders(configs, indexes):
         )
         binarized_y_true = binarize_y(y[fold['test']])
         binarized_y_pred = binarize_y(res.argmax(axis=1))
-        cm = confusion_matrix(binarized_y_true, binarized_y_pred).astype(np.float)
-        score = {
-            'PPV': PPV(cm),
-            'NPV': NPV(cm),
-            'SPC': SPC(cm),
-            'SEN': SEN(cm),
-            'ACC': ACC(cm),
-            'cost_matrix': matrix_cost(binarized_y_true, binarized_y_pred)
-        }
-        test_scores.append(score)
+        test_scores.append(
+            create_score_dict(binarized_y_true, binarized_y_pred)
+        )
     return pd.DataFrame(test_scores)
+
+
+def cv_old_models(df, indexes):
+    models = [
+        'TimmermannBin',
+        'LR1Bin',
+        'LR2Bin',
+        'SMBin',
+        'GiradsDiagBin',
+        'AdnexBin',
+    ]
+    models_dict = dict.fromkeys(models)
+    for model in models:
+        test_scores = []
+        for fold in indexes:
+            y_true = binarize_y(y[fold['test']])
+            y_pred = df[model].values.astype(np.int)[fold['test']]
+            test_scores.append(create_score_dict(y_true, y_pred))
+
+        score_df = pd.DataFrame(test_scores)
+        models_dict[model] = pd.DataFrame(
+            {'mean': score_df.mean(), 'std': score_df.std()}
+        )
+    return models_dict
 
 
 def cv_nn(indexes):
