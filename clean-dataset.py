@@ -64,6 +64,21 @@ idx = (pd.isnull(clean_df['SeptumThickness']) & clean_df['Septum'] == 0)
 clean_df.loc[idx, 'SeptumThickness'] = 0
 
 
+Papillarities = (
+    (clean_df[['APapDimension', 'BPapDimension']].max(axis=1) > 3) | clean_df['Pap']
+)
+clean_df.loc[:, 'ANN2_Papillarities'] = Papillarities
+
+
+Unilocular = (
+    (clean_df['Echo'] == 1) | (clean_df['Echo'] == 2) |
+    (clean_df['LoculesCount'] == 0) | (clean_df['LoculesCount'] == 1) |
+    (clean_df['Solid'] == 1)
+)
+
+clean_df.loc[:, 'ANN2_Unilocular'] = Unilocular
+
+
 LR1_features = [
     'Age',
     'OvarianCancerInFamily',
@@ -111,14 +126,38 @@ SM_features = [
 ]
 
 ANN1_features = [
-    'Pap', 'Ca125',
-    'ADimension', 'BDimension', 'CDimension', 'MaxDimension',
-    'Color', 'Menopause']
+    'Age',
+    'Menopause',
+    'TumorVolume',
+    'Pap',
+    # '...'  # CALC & ADD PSV
+]
+
+
+ANN2_1_features = [
+    'ANN2_Papillarities',
+    'Color',
+    'Menopause',
+    'Ca125'
+]
+
+ANN2_2_features = [
+    'ANN2_Papillarities',
+    'InnerWall',
+    'ANN2_Unilocular',
+    'Ascites',
+    'Menopause',
+    'Ca125',
+]
+
+ANN3 = [
+    # ''
+]
 
 
 X_features = list(
     set(LR1_features + LR2_features + Tim_features + SM_features +
-        ANN1_features)
+        ANN1_features + ANN2_1_features + ANN2_2_features)
 )
 y_name = 'MalignancyCharacter'
 
