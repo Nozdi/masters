@@ -1,5 +1,18 @@
 import pandas as pd
 
+from settings import (
+    LR1_FEATURES,
+    LR2_FEATURES,
+    TIM_FEATURES,
+    SM_FEATURES,
+    ANN1_FEATURES,
+    ANN2_1_FEATURES,
+    ANN2_2_FEATURES,
+    ANN3_FEATURES,
+    OTHER_MODELS_RESUTLS,
+    Y_NAME,
+)
+
 bad_data_ids = [
     'Sms100',
     'Sms212',
@@ -68,6 +81,7 @@ Papillarities = (
     (clean_df[['APapDimension', 'BPapDimension']].max(axis=1) > 3) | clean_df['Pap']
 )
 clean_df.loc[:, 'ANN2_Papillarities'] = Papillarities
+clean_df.loc[:, 'ANN2_Bilateral'] = 0
 
 
 Unilocular = (
@@ -79,100 +93,13 @@ Unilocular = (
 clean_df.loc[:, 'ANN2_Unilocular'] = Unilocular
 
 
-LR1_features = [
-    'Age',
-    'OvarianCancerInFamily',
-    'HormoneReplacementTherapy',
-    'PainAtExamination',
-    'MaxDimension',
-    'Ascites',
-    'PapBloodFlow',
-    'Solid',
-    'ASolidDimension',
-    'InnerWall',
-    'Shadow',
-    'Color',
-]
-
-LR2_features = [
-    "Age",
-    "Ascites",
-    "PapBloodFlow",
-    "ASolidDimension",
-    "InnerWall",
-    "Shadow",
-]
-
-Tim_features = [
-    "Color",
-    "Ca125",
-    "APapDimension",
-    "AgeAfterMenopause"
-]
-
-SM_features = [
-    "Septum",
-    "SmEchogenicity",
-    "Location",
-    "Ascites",
-    "SmInnerWallThickness",
-    "TumorVolume",
-    "Solid",
-    "Pap",
-    "APapDimension",
-    "InnerWall",
-    "SeptumThickness",
-    "AgeAfterMenopause"
-]
-
-ANN1_features = [
-    'Age',
-    'Menopause',
-    'TumorVolume',
-    'Pap',
-    # '...'  # CALC & ADD PSV
-]
-
-
-ANN2_1_features = [
-    'ANN2_Papillarities',
-    'Color',
-    'Menopause',
-    'Ca125'
-]
-
-ANN2_2_features = [
-    'ANN2_Papillarities',
-    'InnerWall',
-    'ANN2_Unilocular',
-    'Ascites',
-    'Menopause',
-    'Ca125',
-]
-
-ANN3 = [
-    # ''
-]
-
-
 X_features = list(
-    set(LR1_features + LR2_features + Tim_features + SM_features +
-        ANN1_features + ANN2_1_features + ANN2_2_features)
+    set(LR1_FEATURES + LR2_FEATURES + TIM_FEATURES + SM_FEATURES +
+        ANN1_FEATURES + ANN2_1_FEATURES + ANN2_2_FEATURES + ANN3_FEATURES)
 )
-y_name = 'MalignancyCharacter'
-
 
 clean_df.loc[:, 'GiradsDiagBin'] = clean_df['GiradsDiag'] > 3
 
-other_models_results = [
-    'TimmermannBin',
-    'LR1Bin',
-    'LR2Bin',
-    'SMBin',
-    'GiradsDiagBin',
-    'AdnexBin',
-]
-
-non_empty = clean_df[X_features + [y_name] + other_models_results].dropna()
+non_empty = clean_df[X_features + [Y_NAME] + OTHER_MODELS_RESUTLS].dropna()
 
 non_empty.to_csv('./data/dataset.csv', index=False)
