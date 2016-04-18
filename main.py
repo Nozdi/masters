@@ -24,6 +24,13 @@ from sklearn.grid_search import ParameterGrid
 from sklearn.base import clone
 from sklearn.metrics import confusion_matrix
 
+from keras.models import Sequential
+from keras.layers.core import (
+    Dense,
+    Activation,
+)
+from keras.optimizers import SGD
+
 from nested_kfold import nested_kfold
 from metrics import (
     matrix_cost,
@@ -35,6 +42,11 @@ from metrics import (
     ACC,
 )
 from ladder.run import train_own_dataset
+
+from settings import (
+    ANN2_1_FEATURES,
+    ANN2_2_FEATURES,
+)
 
 
 LADDERS_CONFIG = 'ladder_models.yaml'
@@ -49,6 +61,7 @@ with open(LADDERS_CONFIG, 'r') as fp:
 
 df = pd.read_csv(DATASET)
 y = df[TARGET_NAME].values.astype(np.int)
+y_bin = binarize_y(y)
 indexes = nested_kfold(y, method='stratified')
 
 
@@ -141,7 +154,7 @@ def cv_old_models(df, indexes):
     for model in models:
         test_scores = []
         for fold in indexes:
-            y_true = binarize_y(y[fold['test']])
+            y_true = y_bin[fold['test']]
             y_pred = df[model].values.astype(np.int)[fold['test']]
             test_scores.append(create_score_dict(y_true, y_pred))
 
@@ -152,8 +165,67 @@ def cv_old_models(df, indexes):
     return models_dict
 
 
-def cv_nn(indexes):
-    pass
+def ann2_1(optimizer='sgd'):
+    model = Sequential()
+    model.add(Dense(3, input_dim=4))
+    model.add(Activation("sigmoid"))
+    model.add(Dense(1))
+    model.add(Activation("sigmoid"))
+    model.compile(loss='binary_crossentropy', optimizer=optimizer)
+    return model
+
+
+def ann2_2(optimizer='sgd'):
+    model = Sequential()
+    model.add(Dense(2, input_dim=7))
+    model.add(Activation("sigmoid"))
+    model.add(Dense(1))
+    model.add(Activation("sigmoid"))
+    model.compile(loss='binary_crossentropy', optimizer=optimizer)
+    return model
+
+
+ann_grid = {
+    'lr': [0.1, 0.06, 0.03, 0.01],
+    'batch_size': [25, 50],
+    'nb_epoch': [100, 200, 300, 400, 500]
+}
+
+
+def cv_nn(indexes, grid, model_fun, features):
+    test_scores = []
+    for fold in tqdm(indexes):
+        nested_cv_results = []
+        X = df[features].values.astype(np.float)
+        for config in ParameterGrid(grid):
+            for nested_fold in fold['nested_indexes']:
+                model = model_fun(SGD(lr=config['lr']))
+                model.fit(
+                    X[nested_fold['train']],
+                    y_bin[nested_fold['train']],
+                    batch_size=config['batch_size'], nb_epoch=config['nb_epoch'])
+                pred = (
+                    model.predict_proba(X[nested_fold['val']]) > 0.5
+                ).astype(np.int).ravel()
+                nested_cv_results.append({
+                    'score': matrix_cost(y_bin[nested_fold['val']], pred),
+                    'config': json.dumps(config),
+                })
+        df_scores = pd.DataFrame(nested_cv_results)
+        sorted_configs = df_scores.groupby('config').mean().sort_values('score')
+        config = yaml.safe_load(sorted_configs.index[0])
+        model = model_fun(SGD(lr=config['lr']))
+        model.fit(
+            X[fold['train']],
+            y_bin[fold['train']].values,
+            batch_size=config['batch_size'], nb_epoch=config['nb_epoch'])
+        pred = (
+            model.predict_proba(X[fold['test']]) > 0.5
+        ).astype(np.int).ravel()
+        test_scores.append(
+            create_score_dict(y_bin['test'], pred)
+        )
+    return pd.DataFrame(test_scores)
 
 
 clf = make_pipeline(
@@ -229,33 +301,3 @@ def cv_sk(indexes, base_estimator, grid):
         }
         test_scores.append(score)
     return pd.DataFrame(test_scores)
-
-
-# if __name__ == '__main__':
-#     # calc mean & std
-#     df = cv_sk(indexes, clf, grid)
-#     print pd.DataFrame({'mean': df.mean(), 'std': df.std()})
-
-
-# from keras.models import Sequential
-# from keras.layers.core import Dense, Activation
-
-# model = Sequential()
-# model.add(Dense(6, input_dim=7, init="glorot_uniform"))
-# model.add(Activation("relu"))
-# model.add(Dense(5, init="glorot_uniform"))
-# model.add(Activation("relu"))
-# model.add(Dense(4, init="glorot_uniform"))
-# model.add(Activation("relu"))
-# model.add(Dense(3, init="glorot_uniform"))
-# model.add(Activation("softmax"))
-
-# model.compile(loss='categorical_crossentropy', optimizer='adam')
-
-# model.fit(X[first_nested_fold['train']],
-#           pd.get_dummies(y[first_nested_fold['train']]).values,
-#           batch_size=50, nb_epoch=600)
-# pred = model.predict_proba(X[first_nested_fold['val']],
-#                            batch_size=32)
-
-# print 1-accuracy_score(y[first_nested_fold['val']], pred.argmax(axis=1))
