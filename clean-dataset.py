@@ -1,4 +1,10 @@
 import pandas as pd
+import numpy as np
+
+from reproduce_ann2 import (
+    ann_2_1,
+    ann_2_2,
+)
 
 from settings import (
     LR1_FEATURES,
@@ -82,7 +88,27 @@ Papillarities = (
 )
 clean_df.loc[:, 'ANN2_Papillarities'] = Papillarities
 clean_df.loc[:, 'ANN2_Bilateral'] = 0
+clean_df.loc[:, 'ANN2_Smooth'] = (clean_df['InnerWall'] == 0).astype(np.int)
 
+clean_df.loc[:, 'log_Ca125'] = np.log(clean_df['Ca125'])
+
+ultrasound = np.empty(len(clean_df))
+ultrasound[(
+    (clean_df['InnerWall'] == 0) | (clean_df['Shadow'] == 1) |
+    (clean_df['SeptumThickness'] < 3) | (clean_df['Echo'] < 3)
+).values] = 0
+
+ultrasound[(
+    (clean_df['Shadow'] == 0) | (clean_df['SeptumThickness'] >= 3)
+).values] = 1
+
+ultrasound[(clean_df['Solid'] == 1).values] = 2
+
+ultrasound[(
+    (clean_df[['APapDimension', 'BPapDimension']].max(axis=1) > 3) |
+    (clean_df['Echo'] >= 3)
+).values] = 3
+clean_df.loc[:, 'Ultrasound'] = ultrasound
 
 Unilocular = (
     (clean_df['Echo'] == 1) | (clean_df['Echo'] == 2) |
@@ -92,13 +118,15 @@ Unilocular = (
 
 clean_df.loc[:, 'ANN2_Unilocular'] = Unilocular
 
-clean_df.loc[:, 'ANN1_PSV'] = Unilocular
-
 
 X_features = list(
     set(LR1_FEATURES + LR2_FEATURES + TIM_FEATURES + SM_FEATURES +
         ANN1_FEATURES + ANN2_1_FEATURES + ANN2_2_FEATURES + ANN3_FEATURES)
 )
+
+clean_df['ann_2_1_Bin'] = ann_2_1(clean_df)
+clean_df['ann_2_2_Bin'] = ann_2_2(clean_df)
+
 
 non_empty = clean_df[X_features + [Y_NAME] + OTHER_MODELS_RESUTLS].dropna()
 

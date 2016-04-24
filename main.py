@@ -17,7 +17,10 @@ from joblib import (
     delayed,
 )
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import (
+    StandardScaler,
+    MinMaxScaler,
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.grid_search import ParameterGrid
@@ -174,19 +177,9 @@ def cv_old_models(df, indexes):
     return models_dict
 
 
-def ann2_1(optimizer='sgd'):
+def ann3(optimizer='sgd'):
     model = Sequential()
-    model.add(Dense(3, input_dim=4))
-    model.add(Activation("sigmoid"))
-    model.add(Dense(1))
-    model.add(Activation("sigmoid"))
-    model.compile(loss='binary_crossentropy', optimizer=optimizer)
-    return model
-
-
-def ann2_2(optimizer='sgd'):
-    model = Sequential()
-    model.add(Dense(2, input_dim=7))
+    model.add(Dense(3, input_dim=3))
     model.add(Activation("sigmoid"))
     model.add(Dense(1))
     model.add(Activation("sigmoid"))
@@ -201,21 +194,35 @@ ann_grid = {
 }
 
 
-def cv_nn(indexes, grid, model_fun, features):
+def pred_ann_3(df, train_idx, val_idx, config):
+    model = ann3(SGD(lr=config['lr']))
+    scaler = MinMaxScaler()
+    train_df = df.ix[train_idx]
+    val_df = df.ix[val_idx]
+    X_train = scaler.fit_transform(train_df[['Ultrasound', 'Age']])
+    ca_df = df[['log_Ca125']].values.astype(float)
+    X_train = np.hstack((X_train, ca_df[train_idx]))
+    model.fit(
+        X_train,
+        y_bin[train_idx],
+        batch_size=config['batch_size'], nb_epoch=config['nb_epoch']
+    )
+    X_val = scaler.transform(val_df[['Ultrasound', 'Age']])
+    X_val = np.hstack((X_val, ca_df[val_idx]))
+    return (
+        model.predict_proba(X_val) > 0.5
+    ).astype(np.int).ravel()
+
+
+def cv_nn(indexes, grid, pred_function=None):
     test_scores = []
     for fold in tqdm(indexes):
         nested_cv_results = []
-        X = df[features].values.astype(np.float)
         for config in ParameterGrid(grid):
             for nested_fold in fold['nested_indexes']:
-                model = model_fun(SGD(lr=config['lr']))
-                model.fit(
-                    X[nested_fold['train']],
-                    y_bin[nested_fold['train']],
-                    batch_size=config['batch_size'], nb_epoch=config['nb_epoch'])
-                pred = (
-                    model.predict_proba(X[nested_fold['val']]) > 0.5
-                ).astype(np.int).ravel()
+                pred = pred_function(
+                    df, nested_fold['train'], nested_fold['val'], config
+                )
                 nested_cv_results.append({
                     'score': matrix_cost(y_bin[nested_fold['val']], pred),
                     'config': json.dumps(config),
@@ -223,16 +230,11 @@ def cv_nn(indexes, grid, model_fun, features):
         df_scores = pd.DataFrame(nested_cv_results)
         sorted_configs = df_scores.groupby('config').mean().sort_values('score')
         config = yaml.safe_load(sorted_configs.index[0])
-        model = model_fun(SGD(lr=config['lr']))
-        model.fit(
-            X[fold['train']],
-            y_bin[fold['train']].values,
-            batch_size=config['batch_size'], nb_epoch=config['nb_epoch'])
-        pred = (
-            model.predict_proba(X[fold['test']]) > 0.5
-        ).astype(np.int).ravel()
+        pred = pred_function(
+            df, fold['train'], fold['test'], config
+        )
         test_scores.append(
-            create_score_dict(y_bin['test'], pred)
+            create_score_dict(y_bin[fold['test']], pred)
         )
     return pd.DataFrame(test_scores)
 

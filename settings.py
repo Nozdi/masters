@@ -50,29 +50,31 @@ ANN1_FEATURES = [
     'Menopause',
     'TumorVolume',
     'Pap',
-    'ANN1_PSV',
+    # 'ANN1_PSV',
 ]
 
 
 ANN2_1_FEATURES = [
-    'ANN2_Papillarities',
-    'Color',
     'Menopause',
-    'Ca125'
+    'Ca125',
+    'Color',
+    'ANN2_Papillarities',
 ]
 
 ANN2_2_FEATURES = [
-    'ANN2_Papillarities',
-    'InnerWall',
-    'ANN2_Unilocular',
-    'Ascites',
-    'ANN2_Bilateral',
     'Menopause',
     'Ca125',
+    'Ascites',
+    'ANN2_Unilocular',
+    'ANN2_Smooth',
+    'ANN2_Papillarities',
+    'ANN2_Bilateral',
 ]
 
 ANN3_FEATURES = [
-    # ''
+    'log_Ca125',
+    'Ultrasound',
+    'Age',
 ]
 
 
@@ -82,6 +84,8 @@ OTHER_MODELS_RESUTLS = [
     'LR2Bin',
     'SMBin',
     'AdnexBin',
+    'ann_2_1_Bin',
+    'ann_2_2_Bin',
 ]
 
 Y_NAME = 'MalignancyCharacter'
