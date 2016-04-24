@@ -46,11 +46,6 @@ from metrics import (
 )
 from ladder.run import train_own_dataset
 
-from settings import (
-    ANN2_1_FEATURES,
-    ANN2_2_FEATURES,
-)
-
 
 LADDERS_CONFIG = 'ladder_models.yaml'
 DATASET = 'data/dataset.csv'
