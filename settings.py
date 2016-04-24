@@ -50,7 +50,7 @@ ANN1_FEATURES = [
     'Menopause',
     'TumorVolume',
     'Pap',
-    # '...'  # CALC & ADD PSV
+    'ANN1_PSV',
 ]
 
 
@@ -81,7 +81,6 @@ OTHER_MODELS_RESUTLS = [
     'LR1Bin',
     'LR2Bin',
     'SMBin',
-    'GiradsDiagBin',
     'AdnexBin',
 ]
 

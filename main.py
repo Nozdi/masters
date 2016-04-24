@@ -74,7 +74,7 @@ class OvaDataset(IndexableDataset):
         super(OvaDataset, self).__init__(indexables, **kwargs)
 
 
-def validate_ladder(config, df, y, train_indexes, val_indexes):
+def validate_ladder(config, df, y, train_indexes, val_indexes, name):
     _config = config.copy()
     X = df[_config.pop('x_features')].values.astype(np.float)
     res, inputs = train_own_dataset(
@@ -83,15 +83,18 @@ def validate_ladder(config, df, y, train_indexes, val_indexes):
             'ovadataset': OvaDataset(X, y),
             'train_indexes': train_indexes,
             'val_indexes': val_indexes,
-        }
+        },
+        save_to=name
     )
-    return {
+    score = {
         'score': matrix_cost(
             binarize_y(y[val_indexes]),
             binarize_y(res.argmax(axis=1)),
         ),
         'config': json.dumps(config),
     }
+    pd.Series(score).to_csv("./results/{}/score.csv".format(name))
+    return score
 
 
 def create_score_dict(y_true, y_pred):
@@ -112,16 +115,19 @@ def cv_ladders(configs, indexes):
         *[list(ParameterGrid(grid)) for grid in configs.values()]
     ))
 
-    for fold in tqdm(indexes):
+    for idx, fold in enumerate(indexes):
         scores = Parallel(n_jobs=N_CORES)(
             delayed(validate_ladder)(
                 config, df, y,
                 nested_fold['train'],
-                nested_fold['val']
+                nested_fold['val'],
+                name="ova_{}_{}".format(idx, inner_idx),
             )
-            for config, nested_fold in product(all_configs, fold['nested_indexes'])
+            for inner_idx, (config, nested_fold) in
+            enumerate(product(all_configs, fold['nested_indexes']))
         )
         df_scores = pd.DataFrame(scores)
+        df_scores.to_csv("./results/fold_{}_scores.csv".format(idx), index=False)
         sorted_configs = df_scores.groupby('config').mean().sort_values('score')
         _config = yaml.safe_load(sorted_configs.index[0])
         X = df[_config.pop('x_features')].values.astype(np.float)
@@ -131,14 +137,17 @@ def cv_ladders(configs, indexes):
                 'ovadataset': OvaDataset(X, y),
                 'train_indexes': fold['train'],
                 'val_indexes': fold['test'],
-            }
+            },
+            save_to='ova_{}'.format(idx)
         )
         binarized_y_true = binarize_y(y[fold['test']])
         binarized_y_pred = binarize_y(res.argmax(axis=1))
         test_scores.append(
             create_score_dict(binarized_y_true, binarized_y_pred)
         )
-    return pd.DataFrame(test_scores)
+    results = pd.DataFrame(test_scores)
+    results.to_csv("./results/all.csv", index=False)
+    return results
 
 
 def cv_old_models(df, indexes):

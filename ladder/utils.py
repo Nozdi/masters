@@ -140,16 +140,18 @@ class SaveLog(SimpleExtension):
 
 def prepare_dir(save_to, results_dir='results'):
     base = os.path.join(results_dir, save_to)
-    i = 0
-
-    while True:
-        name = base + str(i)
-        try:
-            os.makedirs(name)
-            break
-        except:
-            i += 1
-
+    try:
+        os.makedirs(base)
+        name = base
+    except:
+        i = 0
+        while True:
+            name = base + str(i)
+            try:
+                os.makedirs(name)
+                break
+            except:
+                i += 1
     return name
 
 

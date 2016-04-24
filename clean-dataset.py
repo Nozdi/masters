@@ -92,13 +92,13 @@ Unilocular = (
 
 clean_df.loc[:, 'ANN2_Unilocular'] = Unilocular
 
+clean_df.loc[:, 'ANN1_PSV'] = Unilocular
+
 
 X_features = list(
     set(LR1_FEATURES + LR2_FEATURES + TIM_FEATURES + SM_FEATURES +
         ANN1_FEATURES + ANN2_1_FEATURES + ANN2_2_FEATURES + ANN3_FEATURES)
 )
-
-clean_df.loc[:, 'GiradsDiagBin'] = clean_df['GiradsDiag'] > 3
 
 non_empty = clean_df[X_features + [Y_NAME] + OTHER_MODELS_RESUTLS].dropna()
 

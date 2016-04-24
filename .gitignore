@@ -70,3 +70,6 @@ data/dataset.csv
 
 # Mac
 .DS_Store
+
+# results
+results/
