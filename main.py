@@ -85,12 +85,11 @@ def validate_ladder(config, df, y, train_indexes, val_indexes, name):
         save_to=name
     )
     score = {
-        'score': matrix_cost(
-            binarize_y(y[val_indexes]),
-            binarize_y(res.argmax(axis=1)),
-        ),
         'config': json.dumps(config),
     }
+    score.update(create_score_dict(
+        binarize_y(y[val_indexes]), binarize_y(res.argmax(axis=1)),
+    ))
     pd.Series(score).to_csv("./results/{}/score.csv".format(name))
     return score
 
@@ -126,7 +125,9 @@ def cv_ladders(configs, indexes):
         )
         df_scores = pd.DataFrame(scores)
         df_scores.to_csv("./results/fold_{}_scores.csv".format(idx), index=False)
-        sorted_configs = df_scores.groupby('config').mean().sort_values('score')
+        sorted_configs = df_scores.groupby('config').mean().sort_values(
+            ['cost_matrix', 'SEN'], ascending=[True, False]
+        )
         _config = yaml.safe_load(sorted_configs.index[0])
         X = df[_config.pop('x_features')].values.astype(np.float)
         res, inputs = train_own_dataset(
@@ -154,8 +155,9 @@ def cv_old_models(df, indexes):
         'LR1Bin',
         'LR2Bin',
         'SMBin',
-        'GiradsDiagBin',
         'AdnexBin',
+        'ann_2_1_Bin',
+        'ann_2_2_Bin',
     ]
     models_dict = dict.fromkeys(models)
     for model in models:
@@ -218,12 +220,15 @@ def cv_nn(indexes, grid, pred_function=None):
                 pred = pred_function(
                     df, nested_fold['train'], nested_fold['val'], config
                 )
-                nested_cv_results.append({
-                    'score': matrix_cost(y_bin[nested_fold['val']], pred),
+                score_dict = create_score_dict(y_bin[nested_fold['val']], pred)
+                score_dict.update({
                     'config': json.dumps(config),
                 })
+                nested_cv_results.append(score_dict)
         df_scores = pd.DataFrame(nested_cv_results)
-        sorted_configs = df_scores.groupby('config').mean().sort_values('score')
+        sorted_configs = df_scores.groupby('config').mean().sort_values(
+            ['cost_matrix', 'SEN'], ascending=[True, False]
+        )
         config = yaml.safe_load(sorted_configs.index[0])
         pred = pred_function(
             df, fold['train'], fold['test'], config
