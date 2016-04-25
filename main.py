@@ -47,7 +47,7 @@ from metrics import (
 from ladder.run import train_own_dataset
 
 
-LADDERS_CONFIG = 'ladder_models.yaml'
+LADDERS_CONFIG = 'all_ladder_models.yaml'
 DATASET = 'data/dataset.csv'
 TARGET_NAME = 'MalignancyCharacter'
 N_CORES = 2
@@ -75,18 +75,24 @@ class OvaDataset(IndexableDataset):
 def validate_ladder(config, df, y, train_indexes, val_indexes, name):
     _config = config.copy()
     X = df[_config.pop('x_features')].values.astype(np.float)
-    res, inputs = train_own_dataset(
-        config,
-        dataset={
-            'ovadataset': OvaDataset(X, y),
-            'train_indexes': train_indexes,
-            'val_indexes': val_indexes,
-        },
-        save_to=name
-    )
     score = {
         'config': json.dumps(config),
     }
+    try:
+        res, inputs = train_own_dataset(
+            config,
+            dataset={
+                'ovadataset': OvaDataset(X, y),
+                'train_indexes': train_indexes,
+                'val_indexes': val_indexes,
+            },
+            save_to=name
+        )
+    except Exception as e:
+        res = np.zeros((len(y[val_indexes]), 3))
+        score['failed'] = True
+        score['error'] = e.message
+
     score.update(create_score_dict(
         binarize_y(y[val_indexes]), binarize_y(res.argmax(axis=1)),
     ))
@@ -111,7 +117,6 @@ def cv_ladders(configs, indexes):
     all_configs = list(chain(
         *[list(ParameterGrid(grid)) for grid in configs.values()]
     ))
-
     for idx, fold in enumerate(indexes):
         scores = Parallel(n_jobs=N_CORES)(
             delayed(validate_ladder)(
