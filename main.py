@@ -153,7 +153,7 @@ def cv_ladders(configs, indexes, name):
 
 def cv_all_ladders(configs, indexes):
     for name, config_grid in configs.iteritems():
-        cv_ladders(list(ParameterGrid(grid)), indexes, name=name)
+        cv_ladders(list(ParameterGrid(config_grid)), indexes, name=name)
 
 
 def cv_old_models(df, indexes):
