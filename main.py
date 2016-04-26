@@ -77,6 +77,7 @@ def validate_ladder(config, df, y, train_indexes, val_indexes, name):
     X = df[_config.pop('x_features')].values.astype(np.float)
     score = {
         'config': json.dumps(config),
+        'error': None,
     }
     try:
         res, inputs = train_own_dataset(
@@ -90,8 +91,7 @@ def validate_ladder(config, df, y, train_indexes, val_indexes, name):
         )
     except Exception as e:
         res = np.zeros((len(y[val_indexes]), 3))
-        score['failed'] = True
-        score['error'] = e.message
+        score['error'] = str(e)
 
     score.update(create_score_dict(
         binarize_y(y[val_indexes]), binarize_y(res.argmax(axis=1)),
