@@ -50,7 +50,7 @@ from ladder.run import train_own_dataset
 LADDERS_CONFIG = 'all_ladder_models.yaml'
 DATASET = 'data/dataset.csv'
 TARGET_NAME = 'MalignancyCharacter'
-N_CORES = 2
+N_CORES = 20
 
 
 with open(LADDERS_CONFIG, 'r') as fp:
@@ -112,21 +112,18 @@ def create_score_dict(y_true, y_pred):
     }
 
 
-def cv_ladders(configs, indexes):
+def cv_ladders(configs, indexes, name):
     test_scores = []
-    all_configs = list(chain(
-        *[list(ParameterGrid(grid)) for grid in configs.values()]
-    ))
     for idx, fold in enumerate(indexes):
         scores = Parallel(n_jobs=N_CORES)(
             delayed(validate_ladder)(
                 config, df, y,
                 nested_fold['train'],
                 nested_fold['val'],
-                name="ova_{}_{}".format(idx, inner_idx),
+                name="ova_{}_{}_{}".format(name, idx, inner_idx),
             )
             for inner_idx, (config, nested_fold) in
-            enumerate(product(all_configs, fold['nested_indexes']))
+            enumerate(product(configs, fold['nested_indexes']))
         )
         df_scores = pd.DataFrame(scores)
         df_scores.to_csv("./results/fold_{}_scores.csv".format(idx), index=False)
@@ -142,7 +139,7 @@ def cv_ladders(configs, indexes):
                 'train_indexes': fold['train'],
                 'val_indexes': fold['test'],
             },
-            save_to='ova_{}'.format(idx)
+            save_to='ova_{}_{}'.format(name, idx)
         )
         binarized_y_true = binarize_y(y[fold['test']])
         binarized_y_pred = binarize_y(res.argmax(axis=1))
@@ -150,8 +147,13 @@ def cv_ladders(configs, indexes):
             create_score_dict(binarized_y_true, binarized_y_pred)
         )
     results = pd.DataFrame(test_scores)
-    results.to_csv("./results/all.csv", index=False)
+    results.to_csv("./results/{}_all.csv".format(name), index=False)
     return results
+
+
+def cv_all_ladders(configs, indexes):
+    for name, config_grid in configs.iteritems():
+        cv_ladders(list(ParameterGrid(grid)), indexes, name=name)
 
 
 def cv_old_models(df, indexes):
