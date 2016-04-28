@@ -245,48 +245,48 @@ ladder_12_5:
       - SeptumThickness
       - AgeAfterMenopause
 
-ladder_6_4:
-  seed:
-    - 1
-  num_epochs:
-    - 300
-    - 200
-    - 100
-  lr:
-    - 0.002
-  lrate_decay:
-    - 0.67
-  batch_size:
-    - 50
-    - 25
-  super_noise_std:
-    - 0.1
-    - 0.2
-  f_local_noise_std:
-    - 0.1
-    - 0.2
-  act:
-    - relu
-  encoder_layers:
-    - [6, 5, 4, 3]
-    - [6, 4, 4, 3]
-  denoising_cost_x:
-    - [1, 0.01, 0.01, 0.001]
-    - [0.001, 0.01, 0.01, 1]
-    - [0.0001, 0.001, 0.01, 1]
-    - [0.0001, 0.001, 0.001, 1]
-  decoder_spec:
-    - comparison_g4
-    - gauss
-  zestbn:
-    - bugfix  # batch normalization
-  top_c:
-    - True  # last layer softmax
-  x_features:
-    -
-      - Age
-      - Ascites
-      - PapBloodFlow
-      - ASolidDimension
-      - InnerWall
-      - Shadow
+# ladder_6_4:
+#   seed:
+#     - 1
+#   num_epochs:
+#     - 300
+#     - 200
+#     - 100
+#   lr:
+#     - 0.002
+#   lrate_decay:
+#     - 0.67
+#   batch_size:
+#     - 50
+#     - 25
+#   super_noise_std:
+#     - 0.1
+#     - 0.2
+#   f_local_noise_std:
+#     - 0.1
+#     - 0.2
+#   act:
+#     - relu
+#   encoder_layers:
+#     - [6, 5, 4, 3]
+#     - [6, 4, 4, 3]
+#   denoising_cost_x:
+#     - [1, 0.01, 0.01, 0.001]
+#     - [0.001, 0.01, 0.01, 1]
+#     - [0.0001, 0.001, 0.01, 1]
+#     - [0.0001, 0.001, 0.001, 1]
+#   decoder_spec:
+#     - comparison_g4
+#     - gauss
+#   zestbn:
+#     - bugfix  # batch normalization
+#   top_c:
+#     - True  # last layer softmax
+#   x_features:
+#     -
+#       - Age
+#       - Ascites
+#       - PapBloodFlow
+#       - ASolidDimension
+#       - InnerWall
+#       - Shadow
