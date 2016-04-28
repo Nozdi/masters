@@ -126,7 +126,9 @@ def cv_ladders(configs, indexes, name):
             enumerate(product(configs, fold['nested_indexes']))
         )
         df_scores = pd.DataFrame(scores)
-        df_scores.to_csv("./results/fold_{}_scores.csv".format(idx), index=False)
+        df_scores.to_csv(
+            "./results/fold_{}_{}_scores.csv".format(name, idx), index=False
+        )
         sorted_configs = df_scores.groupby('config').mean().sort_values(
             ['cost_matrix', 'SEN'], ascending=[True, False]
         )
