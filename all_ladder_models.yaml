@@ -1,7 +1,66 @@
-ladder_5_4:
+# ladder_5_4:
+#   seed:
+#     - 1
+#   num_epochs:
+#     - 300
+#     - 200
+#     - 100
+#   lr:
+#     - 0.002
+#   lrate_decay:
+#     - 0.67
+#   batch_size:
+#     - 50
+#     - 25
+#   super_noise_std:
+#     - 0.1
+#     - 0.2
+#   f_local_noise_std:
+#     - 0.1
+#     - 0.2
+#   act:
+#     - relu
+#   encoder_layers:
+#     - [5, 3, 3, 3]
+#     - [5, 4, 3, 3]
+#     - [5, 5, 4, 3]
+#   denoising_cost_x:
+#     - [1, 0.01, 0.01, 0.01]
+#     - [0.001, 0.01, 0.01, 1]
+#     - [0.0001, 0.001, 0.01, 1]
+#     - [0.0001, 0.001, 0.001, 1]
+#   decoder_spec:
+#     - comparison_g4
+#     - gauss
+#   zestbn:
+#     - bugfix  # batch normalization
+#   top_c:
+#     - True  # last layer softmax
+#   x_features:
+#     -
+#       - Pap
+#       - Ca125
+#       - MaxDimension
+#       - Color
+#       - Menopause
+#     -
+#       - ANN2_Papillarities
+#       - Ca125
+#       - Ascites
+#       - InnerWall
+#       - ANN2_Unilocular
+#     -
+#       - Color
+#       - Ca125
+#       - APapDimension
+#       - AgeAfterMenopause
+#       - PapBloodFlow
+
+ladder_5_3:
   seed:
     - 1
   num_epochs:
+    - 400
     - 300
     - 200
     - 100
@@ -21,14 +80,11 @@ ladder_5_4:
   act:
     - relu
   encoder_layers:
-    - [5, 3, 3, 3]
-    - [5, 4, 3, 3]
-    - [5, 5, 4, 3]
+    - [5, 3, 3]
+    - [5, 4, 3]
   denoising_cost_x:
-    - [1, 0.01, 0.01, 0.01]
-    - [0.001, 0.01, 0.01, 1]
-    - [0.0001, 0.001, 0.01, 1]
-    - [0.0001, 0.001, 0.001, 1]
+    - [0.0001, 0.001, 1]
+    - [0.0001, 0.01, 1]
   decoder_spec:
     - comparison_g4
     - gauss
@@ -38,23 +94,23 @@ ladder_5_4:
     - True  # last layer softmax
   x_features:
     -
-      - Pap
-      - Ca125
-      - MaxDimension
       - Color
-      - Menopause
-    -
-      - ANN2_Papillarities
-      - Ca125
-      - Ascites
-      - InnerWall
-      - ANN2_Unilocular
-    -
-      - Color
-      - Ca125
+      - log_Ca125
       - APapDimension
       - AgeAfterMenopause
       - PapBloodFlow
+    -
+      - Color
+      - log_Ca125
+      - ASolidDimension
+      - AgeAfterMenopause
+      - PapBloodFlow
+    -
+      - Color
+      - log_Ca125
+      - ASolidDimension
+      - AgeAfterMenopause
+      - Ascites
 
 # ladder_12_4:
 #   seed:
