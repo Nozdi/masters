@@ -73,4 +73,4 @@ data/categoriesWithFields.json
 .DS_Store
 
 # results
-results/
+results/ladder/ladder_*/ova_ladder_*

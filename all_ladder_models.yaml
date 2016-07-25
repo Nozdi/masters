@@ -59,353 +59,338 @@ ladder_6_4_1:
       - PapBloodFlow
       - Ascites
 
-# ladder_5_4:
-#   seed:
-#     - 1
-#   num_epochs:
-#     - 300
-#     - 200
-#     - 100
-#   lr:
-#     - 0.002
-#   lrate_decay:
-#     - 0.67
-#   batch_size:
-#     - 50
-#     - 25
-#   super_noise_std:
-#     - 0.1
-#     - 0.2
-#   f_local_noise_std:
-#     - 0.1
-#     - 0.2
-#   act:
-#     - relu
-#   encoder_layers:
-#     - [5, 3, 3, 3]
-#     - [5, 4, 3, 3]
-#     - [5, 5, 4, 3]
-#   denoising_cost_x:
-#     - [1, 0.01, 0.01, 0.01]
-#     - [0.001, 0.01, 0.01, 1]
-#     - [0.0001, 0.001, 0.01, 1]
-#     - [0.0001, 0.001, 0.001, 1]
-#   decoder_spec:
-#     - comparison_g4
-#     - gauss
-#   zestbn:
-#     - bugfix  # batch normalization
-#   top_c:
-#     - True  # last layer softmax
-#   x_features:
-#     -
-#       - Pap
-#       - Ca125
-#       - MaxDimension
-#       - Color
-#       - Menopause
-#     -
-#       - ANN2_Papillarities
-#       - Ca125
-#       - Ascites
-#       - InnerWall
-#       - ANN2_Unilocular
-#     -
-#       - Color
-#       - Ca125
-#       - APapDimension
-#       - AgeAfterMenopause
-#       - PapBloodFlow
+ladder_6_4:
+  seed:
+    - 1
+  num_epochs:
+    - 300
+    - 200
+    - 100
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+    - 25
+  super_noise_std:
+    - 0.1
+    - 0.2
+  f_local_noise_std:
+    - 0.1
+    - 0.2
+  act:
+    - relu
+  encoder_layers:
+    - [6, 5, 4, 3]
+    - [6, 4, 4, 3]
+  denoising_cost_x:
+    - [1, 0.01, 0.01, 0.001]
+    - [0.001, 0.01, 0.01, 1]
+    - [0.0001, 0.001, 0.01, 1]
+    - [0.0001, 0.001, 0.001, 1]
+  decoder_spec:
+    - comparison_g4
+    - gauss
+  zestbn:
+    - bugfix  # batch normalization
+  top_c:
+    - True  # last layer softmax
+  x_features:
+    -
+      - Age
+      - Ascites
+      - PapBloodFlow
+      - ASolidDimension
+      - InnerWall
+      - Shadow
+ binary:
+   - False
 
-# ladder_5_3:
-#   seed:
-#     - 1
-#   num_epochs:
-#     - 400
-#     - 300
-#     - 200
-#     - 100
-#   lr:
-#     - 0.002
-#   lrate_decay:
-#     - 0.67
-#   batch_size:
-#     - 50
-#     - 25
-#   super_noise_std:
-#     - 0.1
-#     - 0.2
-#   f_local_noise_std:
-#     - 0.1
-#     - 0.2
-#   act:
-#     - relu
-#   encoder_layers:
-#     - [5, 3, 3]
-#     - [5, 4, 3]
-#   denoising_cost_x:
-#     - [0.0001, 0.001, 1]
-#     - [0.0001, 0.01, 1]
-#   decoder_spec:
-#     - comparison_g4
-#     - gauss
-#   zestbn:
-#     - bugfix  # batch normalization
-#   top_c:
-#     - True  # last layer softmax
-#   x_features:
-#     -
-#       - Color
-#       - log_Ca125
-#       - APapDimension
-#       - AgeAfterMenopause
-#       - PapBloodFlow
-#     -
-#       - Color
-#       - log_Ca125
-#       - ASolidDimension
-#       - AgeAfterMenopause
-#       - PapBloodFlow
-#     -
-#       - Color
-#       - log_Ca125
-#       - ASolidDimension
-#       - AgeAfterMenopause
-#       - Ascites
+ladder_5_4_2:
+  seed:
+    - 1
+  num_epochs:
+    - 300
+    - 200
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+    - 25
+  super_noise_std:
+    - 0.1
+    - 0.2
+  f_local_noise_std:
+    - 0.1
+    - 0.2
+  act:
+    - relu
+  encoder_layers:
+    - [5, 4, 3, 2]
+    - [5, 5, 4, 2]
+    - [5, 5, 4, 2]
+  denoising_cost_x:
+    - [0.0001, 0.001, 0.001, 1]
+    - [0.0001, 0.001, 0.01, 1]
+  decoder_spec:
+    - comparison_g4
+    - gauss
+  zestbn:
+    - bugfix  # batch normalization
+  top_c:
+    - True  # last layer softmax
+  x_features:
+    -
+      - Color
+      - Ca125
+      - APapDimension
+      - AgeAfterMenopause
+      - PapBloodFlow
+  binary:
+    - True
 
+ladder_5_4:
+  seed:
+    - 1
+  num_epochs:
+    - 300
+    - 200
+    - 100
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+    - 25
+  super_noise_std:
+    - 0.1
+    - 0.2
+  f_local_noise_std:
+    - 0.1
+    - 0.2
+  act:
+    - relu
+  encoder_layers:
+    - [5, 3, 3, 3]
+    - [5, 4, 3, 3]
+    - [5, 5, 4, 3]
+  denoising_cost_x:
+    - [1, 0.01, 0.01, 0.01]
+    - [0.001, 0.01, 0.01, 1]
+    - [0.0001, 0.001, 0.01, 1]
+    - [0.0001, 0.001, 0.001, 1]
+  decoder_spec:
+    - comparison_g4
+    - gauss
+  zestbn:
+    - bugfix  # batch normalization
+  top_c:
+    - True  # last layer softmax
+  x_features:
+    -
+      - Pap
+      - Ca125
+      - MaxDimension
+      - Color
+      - Menopause
+    -
+      - ANN2_Papillarities
+      - Ca125
+      - Ascites
+      - InnerWall
+      - ANN2_Unilocular
+    -
+      - Color
+      - Ca125
+      - APapDimension
+      - AgeAfterMenopause
+      - PapBloodFlow
+ binary:
+   - False
 
+ladder_5_3:
+  seed:
+    - 1
+  num_epochs:
+    - 400
+    - 300
+    - 200
+    - 100
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+    - 25
+  super_noise_std:
+    - 0.1
+    - 0.2
+  f_local_noise_std:
+    - 0.1
+    - 0.2
+  act:
+    - relu
+  encoder_layers:
+    - [5, 3, 3]
+    - [5, 4, 3]
+  denoising_cost_x:
+    - [0.0001, 0.001, 1]
+    - [0.0001, 0.01, 1]
+  decoder_spec:
+    - comparison_g4
+    - gauss
+  zestbn:
+    - bugfix  # batch normalization
+  top_c:
+    - True  # last layer softmax
+  x_features:
+    -
+      - Color
+      - log_Ca125
+      - APapDimension
+      - AgeAfterMenopause
+      - PapBloodFlow
+    -
+      - Color
+      - log_Ca125
+      - ASolidDimension
+      - AgeAfterMenopause
+      - PapBloodFlow
+    -
+      - Color
+      - log_Ca125
+      - ASolidDimension
+      - AgeAfterMenopause
+      - Ascites
+ binary:
+   - False
 
-# ladder_12_4:
-#   seed:
-#     - 1
-#   num_epochs:
-#     - 300
-#     - 200
-#     - 100
-#   lr:
-#     - 0.002
-#   lrate_decay:
-#     - 0.67
-#   batch_size:
-#     - 50
-#     - 25
-#   super_noise_std:
-#     - 0.1
-#     - 0.2
-#   f_local_noise_std:
-#     - 0.1
-#     - 0.2
-#   act:
-#     - relu
-#   encoder_layers:
-#     - [12, 10, 6, 3]
-#     - [12, 8, 6, 3]
-#     - [12, 6, 3, 3]
-#     - [12, 5, 4, 3]
-#   denoising_cost_x:
-#     - [1, 0.01, 0.01, 0.01]
-#     - [0.001, 0.01, 0.01, 1]
-#     - [0.0001, 0.001, 0.01, 1]
-#     - [0.0001, 0.001, 0.001, 1]
-#   decoder_spec:
-#     - comparison_g4
-#     - gauss
-#   zestbn:
-#     - bugfix  # batch normalization
-#   top_c:
-#     - True  # last layer softmax
-#   x_features:
-#     -
-#       - Age
-#       - OvarianCancerInFamily
-#       - HormoneReplacementTherapy
-#       - PainAtExamination
-#       - MaxDimension
-#       - Ascites
-#       - PapBloodFlow
-#       - Solid
-#       - ASolidDimension
-#       - InnerWall
-#       - Shadow
-#       - Color
-#     -
-#       - Septum
-#       - SmEchogenicity
-#       - Location
-#       - Ascites
-#       - SmInnerWallThickness
-#       - TumorVolume
-#       - Solid
-#       - Pap
-#       - APapDimension
-#       - InnerWall
-#       - SeptumThickness
-#       - AgeAfterMenopause
+ladder_4_3:
+  seed:
+    - 1
+  num_epochs:
+    - 300
+    - 200
+    - 100
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+    - 25
+  super_noise_std:
+    - 0.1
+    - 0.2
+  f_local_noise_std:
+    - 0.1
+    - 0.2
+  act:
+    - relu
+  encoder_layers:
+    - [4, 4, 3]
+    - [4, 3, 3]
+  denoising_cost_x:
+    - [1, 0.01, 0.001]
+    - [0.001, 0.01, 1]
+    - [0.0001, 0.01, 1]
+    - [0.0001, 0.001, 1]
+  decoder_spec:
+    - comparison_g4
+    - gauss
+  zestbn:
+    - bugfix  # batch normalization
+  top_c:
+    - True  # last layer softmax
+  x_features:
+    -
+      - Age
+      - Menopause
+      - Pap
+      - TumorVolume
+    -
+      - Color
+      - Ca125
+      - APapDimension
+      - AgeAfterMenopause
+    -
+      - Menopause
+      - Ca125
+      - Color
+      - ANN2_Papillarities
+ binary:
+   - False
 
-# ladder_4_3:
-#   seed:
-#     - 1
-#   num_epochs:
-#     - 300
-#     - 200
-#     - 100
-#   lr:
-#     - 0.002
-#   lrate_decay:
-#     - 0.67
-#   batch_size:
-#     - 50
-#     - 25
-#   super_noise_std:
-#     - 0.1
-#     - 0.2
-#   f_local_noise_std:
-#     - 0.1
-#     - 0.2
-#   act:
-#     - relu
-#   encoder_layers:
-#     - [4, 4, 3]
-#     - [4, 3, 3]
-#   denoising_cost_x:
-#     - [1, 0.01, 0.001]
-#     - [0.001, 0.01, 1]
-#     - [0.0001, 0.01, 1]
-#     - [0.0001, 0.001, 1]
-#   decoder_spec:
-#     - comparison_g4
-#     - gauss
-#   zestbn:
-#     - bugfix  # batch normalization
-#   top_c:
-#     - True  # last layer softmax
-#   x_features:
-#     -
-#       - Age
-#       - Menopause
-#       - Pap
-#       - TumorVolume
-#     -
-#       - Color
-#       - Ca125
-#       - APapDimension
-#       - AgeAfterMenopause
-#     -
-#       - Menopause
-#       - Ca125
-#       - Color
-#       - ANN2_Papillarities
-
-# ladder_12_5:
-#   seed:
-#     - 1
-#   num_epochs:
-#     - 300
-#     - 200
-#     - 100
-#   lr:
-#     - 0.002
-#   lrate_decay:
-#     - 0.67
-#   batch_size:
-#     - 50
-#     - 25
-#   super_noise_std:
-#     - 0.1
-#     - 0.2
-#   f_local_noise_std:
-#     - 0.1
-#     - 0.2
-#   act:
-#     - relu
-#   encoder_layers:
-#     - [12, 10, 8, 6, 3]
-#     - [12, 8, 6, 4, 3]
-#     - [12, 6, 4, 3, 3]
-#     - [12, 6, 5, 4, 3]
-#   denoising_cost_x:
-#     - [1, 0.01, 0.01, 0.01, 0.01]
-#     - [0.1, 0.01, 0.01, 0.01, 0.01]
-#     - [0.001, 0.01, 0.01, 0.01, 1]
-#     - [0.0001, 0.001, 0.01, 0.01, 1]
-#     - [0.0001, 0.001, 0.001, 0.001, 1]
-#   decoder_spec:
-#     - comparison_g4
-#     - gauss
-#   zestbn:
-#     - bugfix  # batch normalization
-#   top_c:
-#     - True  # last layer softmax
-#   x_features:
-#     -
-#       - Age
-#       - OvarianCancerInFamily
-#       - HormoneReplacementTherapy
-#       - PainAtExamination
-#       - MaxDimension
-#       - Ascites
-#       - PapBloodFlow
-#       - Solid
-#       - ASolidDimension
-#       - InnerWall
-#       - Shadow
-#       - Color
-#     -
-#       - Septum
-#       - SmEchogenicity
-#       - Location
-#       - Ascites
-#       - SmInnerWallThickness
-#       - TumorVolume
-#       - Solid
-#       - Pap
-#       - APapDimension
-#       - InnerWall
-#       - SeptumThickness
-#       - AgeAfterMenopause
-
-# ladder_6_4:
-#   seed:
-#     - 1
-#   num_epochs:
-#     - 300
-#     - 200
-#     - 100
-#   lr:
-#     - 0.002
-#   lrate_decay:
-#     - 0.67
-#   batch_size:
-#     - 50
-#     - 25
-#   super_noise_std:
-#     - 0.1
-#     - 0.2
-#   f_local_noise_std:
-#     - 0.1
-#     - 0.2
-#   act:
-#     - relu
-#   encoder_layers:
-#     - [6, 5, 4, 3]
-#     - [6, 4, 4, 3]
-#   denoising_cost_x:
-#     - [1, 0.01, 0.01, 0.001]
-#     - [0.001, 0.01, 0.01, 1]
-#     - [0.0001, 0.001, 0.01, 1]
-#     - [0.0001, 0.001, 0.001, 1]
-#   decoder_spec:
-#     - comparison_g4
-#     - gauss
-#   zestbn:
-#     - bugfix  # batch normalization
-#   top_c:
-#     - True  # last layer softmax
-#   x_features:
-#     -
-#       - Age
-#       - Ascites
-#       - PapBloodFlow
-#       - ASolidDimension
-#       - InnerWall
-#       - Shadow
+ladder_12_4:
+  seed:
+    - 1
+  num_epochs:
+    - 300
+    - 200
+    - 100
+  lr:
+    - 0.002
+  lrate_decay:
+    - 0.67
+  batch_size:
+    - 50
+    - 25
+  super_noise_std:
+    - 0.1
+    - 0.2
+  f_local_noise_std:
+    - 0.1
+    - 0.2
+  act:
+    - relu
+  encoder_layers:
+    - [12, 10, 6, 3]
+    - [12, 8, 6, 3]
+    - [12, 6, 3, 3]
+    - [12, 5, 4, 3]
+  denoising_cost_x:
+    - [1, 0.01, 0.01, 0.01]
+    - [0.001, 0.01, 0.01, 1]
+    - [0.0001, 0.001, 0.01, 1]
+    - [0.0001, 0.001, 0.001, 1]
+  decoder_spec:
+    - comparison_g4
+    - gauss
+  zestbn:
+    - bugfix  # batch normalization
+  top_c:
+    - True  # last layer softmax
+  x_features:
+    -
+      - Age
+      - OvarianCancerInFamily
+      - HormoneReplacementTherapy
+      - PainAtExamination
+      - MaxDimension
+      - Ascites
+      - PapBloodFlow
+      - Solid
+      - ASolidDimension
+      - InnerWall
+      - Shadow
+      - Color
+    -
+      - Septum
+      - SmEchogenicity
+      - Location
+      - Ascites
+      - SmInnerWallThickness
+      - TumorVolume
+      - Solid
+      - Pap
+      - APapDimension
+      - InnerWall
+      - SeptumThickness
+      - AgeAfterMenopause
+ binary:
+   - False

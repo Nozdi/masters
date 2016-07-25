@@ -7,6 +7,7 @@ docopt==0.6.2
 tqdm==4.4.0
 xlrd==0.9.4
 joblib==0.9.4
+git+git://github.com/Theano/Theano.git
 Keras==1.0.1
 git+git://github.com/mila-udem/blocks.git@v0.0.1
 git+git://github.com/mila-udem/fuel.git@v0.0.1
