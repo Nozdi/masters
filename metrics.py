@@ -1,5 +1,6 @@
 # coding: utf-8
 import numpy as np
+from sklearn.metrics import confusion_matrix as calc_cm
 
 
 def binarize_y(y):
@@ -46,3 +47,15 @@ def ACC(confusion_matrix):
     TN = confusion_matrix[0, 0]
     FN = confusion_matrix[1, 0]
     return (TP + TN) / (TP + FP + TN + FN)
+
+
+def create_score_dict(y_true, y_pred):
+    cm = calc_cm(y_true, y_pred).astype(np.float)
+    return {
+        'PPV': PPV(cm),
+        'NPV': NPV(cm),
+        'SPC': SPC(cm),
+        'SEN': SEN(cm),
+        'ACC': ACC(cm),
+        'cost_matrix': matrix_cost(y_true, y_pred)
+    }
