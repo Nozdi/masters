@@ -22,7 +22,7 @@ y_bin = binarize_y(y)
 indexes = nested_kfold(y, method='stratified')
 
 
-def cv_old_models(df, indexes):
+def cv_old_models(df, indexes, y_bin):
     models = [
         'TimmermannBin',
         'LR1Bin',
@@ -76,7 +76,7 @@ if __name__ == '__main__':
         '--all', dest='all', action='store_true',
         help='Getting CV results using Timmerman / LR1 / LR2 / SM / Adnex model')
 
-    old_models_cv_results = cv_old_models(df, indexes)
+    old_models_cv_results = cv_old_models(df, indexes, y_bin)
     args = parser.parse_args()
     if args.tim or args.all:
         print "Timmerman Model:"
