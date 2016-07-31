@@ -134,20 +134,6 @@ def cv_all_ladders(configs, indexes):
         cv_ladders(list(ParameterGrid(config_grid)), indexes, name=name)
 
 
-def find_best_model(configs):
-    results = {}
-    for name in configs:
-        filename = "./results/ladder/{}/{}_all.csv".format(name, name)
-        results[name] = pd.read_csv(filename)
-
-    best_config = sorted(
-        results, key=lambda config: results[config]['cost_matrix'].mean())[0]
-    return {
-        'config_name': best_config,
-        'df': results[best_config]
-    }
-
-
 def calculate_best_model(config_grid, indexes):
     configs = list(ParameterGrid(config_grid))
     scores = Parallel(n_jobs=N_CORES)(
@@ -162,7 +148,7 @@ def calculate_best_model(config_grid, indexes):
     )
     df_scores = pd.DataFrame(scores)
     df_scores.to_csv(
-        "./results/ladder/best_scores.csv", index=False
+        './results/ladder/best_scores.csv', index=False
     )
     sorted_configs = df_scores.groupby('config').mean().sort_values(
         ['cost_matrix', 'SEN'], ascending=[True, False]
@@ -171,11 +157,25 @@ def calculate_best_model(config_grid, indexes):
 
 
 def get_best_model_config():
-    df_scores = pd.read_csv("./results/ladder/best_scores.csv")
+    df_scores = pd.read_csv('./results/ladder/best_scores.csv')
     sorted_configs = df_scores.groupby('config').mean().sort_values(
         ['cost_matrix', 'SEN'], ascending=[True, False]
     )
     return sorted_configs.iloc[0].name
+
+
+def find_best_model(configs):
+    results = {}
+    for name in configs:
+        filename = "./results/ladder/{}/{}_all.csv".format(name, name)
+        results[name] = pd.read_csv(filename)
+
+    best_config = sorted(
+        results, key=lambda config: results[config]['cost_matrix'].mean())[0]
+    return {
+        'config_name': best_config,
+        'df': results[best_config]
+    }
 
 
 if __name__ == '__main__':
