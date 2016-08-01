@@ -242,12 +242,12 @@ if __name__ == '__main__':
     parser.add_argument(
         '--train', dest='train', action='store_true',
         help='if this flag is set script will do CV from scratch;\n'
-             'CAVEAT: it might take up to 1 h using 20 cores')
+             'CAVEAT: it might take up to 2-3 h using 20 cores')
     parser.add_argument(
         '--train-best', dest='train_best', action='store_true',
         help='if this flag is set script will do CV to find best model'
              ' using nested CV results\n'
-             'CAVEAT: it might take up to 24 hours using 20 cores')
+             'CAVEAT: it might take up to 1 hour using 20 cores')
     parser.add_argument(
         '--get-cv-results', dest='cv_results', action='store_true',
         help='if this flag is set script will return best model'
