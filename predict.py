@@ -35,7 +35,7 @@ if __name__ == '__main__':
     parser.add_argument(
         'AgeAfterMenopause', type=int,
         help='AgeAfterMenopause - how many years after menopause'
-             ' (0 if menopause didn\'t occured)'
+             ' (0 if menopause didn\'t occurred)'
     )
 
     args = parser.parse_args()
