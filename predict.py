@@ -49,11 +49,11 @@ if __name__ == '__main__':
 
     proba_prediction = model.predict(
         np.array([[getattr(args, feature) for feature in X_FEATURES]])
-    )[0]
-    classes = ['Benign', 'Malignant']
-    result = pd.Series(
-        proba_prediction,
-        index=classes
     )
-    result['prediction'] = classes[proba_prediction.argmax()]
-    print result
+    classes = ['Benign', 'Malignant']
+    result = pd.DataFrame(
+        proba_prediction,
+        columns=map(lambda c: '{} Probability'.format(c), classes)
+    )
+    result['Prediction'] = classes[proba_prediction.argmax()]
+    print result.to_string(index=False)
