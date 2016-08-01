@@ -39,15 +39,17 @@ from sklearn.grid_search import ParameterGrid
 
 ANN_GRID = {
     'batch_size': [25, 50],
-    'nb_epoch': range(200, 501, 20),
+    'nb_epoch': range(200, 501, 25),
     'optimizer': ['sgd', 'adam'],
+    'dropout_1': [0.1, 0.15, 0.2],
+    'dropout_2': [0.45, 0.5, 0.55],
     'output_dim': [2]
 }
 N_CORES = 20
 DATASET_FILEPATH = 'data/dataset.csv'
 RESULTS_DIRECTORY = './results/dl'
 
-X_FEATURES = ['Color', 'Ca125', 'AgeAfterMenopause', 'PapBloodFlow']
+X_FEATURES = ['Color', 'Ca125', 'AgeAfterMenopause']
 TARGET = 'MalignancyCharacter'
 
 df = pd.read_csv(DATASET_FILEPATH)
@@ -79,15 +81,18 @@ def weighted_cost_binary(y_true, y_pred):
     )
 
 
-def prepare_ann(optimizer, input_dim, output_dim=3):
+def prepare_ann(
+    optimizer, input_dim, output_dim=3,
+    dropout_1=0.2, dropout_2=0.5
+):
     np.random.seed(seed)  # for reproducibility
     model = Sequential()
     model.add(BatchNormalization(input_shape=(input_dim, )))
-    model.add(Dropout(0.15))
-    model.add(Dense(4, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.45))
+    model.add(Dropout(dropout_1))
     model.add(Dense(3, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(dropout_2))
+    model.add(Dense(2, activation='relu'))
     model.add(Dense(output_dim, activation='softmax'))
     model.compile(loss=weighted_cost, optimizer=optimizer)
     return model
@@ -100,7 +105,8 @@ def pred_ann(
     output_dim = config['output_dim']
     model = prepare_ann(
         config['optimizer'],
-        input_dim=len(feature_list), output_dim=output_dim)
+        input_dim=len(feature_list), output_dim=output_dim,
+        dropout_1=config['dropout_1'], dropout_2=config['dropout_2'])
 
     train_df = df.iloc[train_idx]
     val_df = df.iloc[val_idx]
@@ -197,7 +203,9 @@ def generate_best(indexes, grid, pred_function=pred_ann, df=df, y=y):
     np.random.seed(seed)
     model = prepare_ann(
         best_config['optimizer'], input_dim=len(X_FEATURES),
-        output_dim=best_config['output_dim'])
+        output_dim=best_config['output_dim'],
+        dropout_1=best_config['dropout_1'],
+        dropout_2=best_config['dropout_2'])
     X = df[X_FEATURES].values
     y = to_categorical((df[TARGET].values > 0).astype(int))
 

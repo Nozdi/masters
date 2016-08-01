@@ -1,0 +1,31 @@
+class_name: Sequential
+config:
+- class_name: BatchNormalization
+  config:
+    axis: -1
+    batch_input_shape: !!python/tuple [null, 3]
+    epsilon: 1.0e-06
+    input_dtype: float32
+    mode: 0
+    momentum: 0.9
+    name: batchnormalization_1
+    trainable: true
+- class_name: Dropout
+  config: {name: dropout_1, p: 0.1, trainable: true}
+- class_name: Dense
+  config: {W_constraint: null, W_regularizer: null, activation: relu, activity_regularizer: null,
+    b_constraint: null, b_regularizer: null, init: glorot_uniform, input_dim: null,
+    name: dense_1, output_dim: 3, trainable: true}
+- class_name: BatchNormalization
+  config: {axis: -1, epsilon: 1.0e-06, mode: 0, momentum: 0.9, name: batchnormalization_2,
+    trainable: true}
+- class_name: Dropout
+  config: {name: dropout_2, p: 0.45, trainable: true}
+- class_name: Dense
+  config: {W_constraint: null, W_regularizer: null, activation: relu, activity_regularizer: null,
+    b_constraint: null, b_regularizer: null, init: glorot_uniform, input_dim: null,
+    name: dense_2, output_dim: 2, trainable: true}
+- class_name: Dense
+  config: {W_constraint: null, W_regularizer: null, activation: softmax, activity_regularizer: null,
+    b_constraint: null, b_regularizer: null, init: glorot_uniform, input_dim: null,
+    name: dense_3, output_dim: 2, trainable: true}
