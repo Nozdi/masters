@@ -34,7 +34,10 @@ def ann_2_1(df):
     for w in weights:
         a = sigmoid((a * w['theta'].T + w['beta']))
 
-    return (np.array(a).ravel() > 0.45).astype(np.int)
+    a = np.array(a).ravel()
+    prediction = (a > 0.45).astype(np.float)
+    prediction[np.isnan(a)] = np.nan
+    return prediction
 
 
 def ann_2_2(df):
@@ -60,4 +63,7 @@ def ann_2_2(df):
     for w in weights:
         a = sigmoid((a * w['theta'].T + w['beta']))
 
-    return (np.array(a).ravel() > 0.60).astype(np.int)
+    a = np.array(a).ravel()
+    prediction = (a > 0.60).astype(np.float)
+    prediction[np.isnan(a)] = np.nan
+    return prediction, a
