@@ -66,4 +66,4 @@ def ann_2_2(df):
     a = np.array(a).ravel()
     prediction = (a > 0.60).astype(np.float)
     prediction[np.isnan(a)] = np.nan
-    return prediction, a
+    return prediction
